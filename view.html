@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shared photos — PhotoSendr</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{--ink:#fff;--muted:rgba(255,255,255,.55);--canvas:#000;--surface:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--accent:#2b6acc}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);
+    font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  header img{width:40px;height:40px;border-radius:10px}
+  header .name{font-weight:600}
+  header .sub{font-size:13px;color:var(--muted)}
+  h1{font-size:26px;font-weight:600;margin:0 0 4px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .grid img{width:100%;display:block}
+  .state{padding:60px 0;text-align:center;color:var(--muted);font-size:17px}
+  .state b{color:var(--ink)}
+  .dl{display:inline-block;margin-top:22px;background:#fff;color:#000;font-weight:600;font-size:14px;
+    padding:10px 18px;border-radius:12px;text-decoration:none}
+  footer{margin-top:48px;font-size:13px;color:var(--muted)}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="">
+    <div><div class="name">PhotoSendr</div><div class="sub">Shared photos</div></div>
+  </header>
+
+  <div id="content"><div class="state">Loading photos…</div></div>
+
+  <footer>
+    Shared with <a href="index.html">PhotoSendr</a> — photos to your list, in a tap.
+    Links expire automatically.
+  </footer>
+</div>
+
+<script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
+<script>
+(function(){
+  // === CONFIG — the API token comes from CloudKit Console (Web Services) ===
+  var CK_TOKEN = 'REPLACE_WITH_API_TOKEN';
+  var CK_ENV = 'development';   // switch to 'production' after schema deploy
+  var CONTAINER = 'iCloud.com.fbmore.PhotoSendrV2';
+
+  var content = document.getElementById('content');
+  function state(html){ content.innerHTML = '<div class="state">'+html+'</div>'; }
+
+  var recordName = (location.hash || '').replace(/^#/,'');
+  if(!recordName){ state('This link is missing its photo id.'); return; }
+  if(CK_TOKEN.indexOf('REPLACE') === 0){ state('Viewer not configured yet.'); return; }
+  if(!window.CloudKit){ state('Could not load the viewer.'); return; }
+
+  CloudKit.configure({
+    containers: [{
+      containerIdentifier: CONTAINER,
+      apiTokenAuth: { apiToken: CK_TOKEN, persist: false },
+      environment: CK_ENV
+    }]
+  });
+
+  var db = CloudKit.getDefaultContainer().publicCloudDatabase;
+  db.fetchRecords(recordName).then(function(resp){
+    if(resp.hasErrors){
+      var code = resp.errors[0] && resp.errors[0].ckErrorCode;
+      if(code === 'NOT_FOUND' || code === 'BAD_REQUEST'){
+        state('<b>This link has expired</b><br>or the photos are no longer shared.');
+      } else {
+        state('Couldn’t load the photos ('+(code||'error')+'). Try again in a moment.');
+      }
+      return;
+    }
+    var rec = resp.records[0];
+    var f = rec.fields || {};
+    var title = (f.title && f.title.value) || 'Shared photos';
+    var expiresAt = f.expiresAt ? new Date(f.expiresAt.value) : null;
+    if(expiresAt && expiresAt < new Date()){
+      state('<b>This link has expired.</b>');
+      return;
+    }
+    var items = (f.items && f.items.value) || [];
+    if(!items.length){ state('No photos in this share.'); return; }
+
+    var html = '<h1></h1><div class="meta"></div><div class="grid">';
+    items.forEach(function(it, i){
+      var url = (it.value && it.value.downloadURL) || '';
+      url = url.replace('${f}', 'photo-'+(i+1)+'.jpg');
+      html += '<a href="'+url+'" download="photo-'+(i+1)+'.jpg" target="_blank" rel="noopener">'+
+              '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></a>';
+    });
+    html += '</div>';
+    content.innerHTML = html;
+    content.querySelector('h1').textContent = title;
+    content.querySelector('.meta').textContent = items.length+' photo'+(items.length===1?'':'s')+
+      (expiresAt ? ' · link expires '+expiresAt.toLocaleDateString() : '');
+  }).catch(function(){
+    state('Couldn’t load the photos. Check your connection and try again.');
+  });
+})();
+</script>
+</body>
+</html>
