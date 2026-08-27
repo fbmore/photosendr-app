@@ -112,7 +112,7 @@
 
   /* pdf stack mock */
   .stackstage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;width:100%}
-  .stack{position:relative;width:120px;height:150px}
+  .stack{position:relative;width:120px;height:150px;margin-bottom:44px}
   .stack i{position:absolute;inset:0;border-radius:12px;display:block;animation:collapse 6s ease-in-out infinite}
   .stack i:nth-child(1){background:linear-gradient(135deg,#e8d84a,#3fae6d,#4a90d9);--tx:-70px;--rot:-8deg;z-index:3}
   .stack i:nth-child(2){background:linear-gradient(120deg,#e8c94a,#d97fb5,#b58ad9);--tx:0px;--rot:0deg;z-index:2}
@@ -121,8 +121,9 @@
     0%,22%{transform:translateX(var(--tx)) rotate(0)}
     40%,86%{transform:translateX(0) rotate(var(--rot))}
     100%{transform:translateX(var(--tx)) rotate(0)}}
-  .pdfbadge{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
-    background:#fff;color:#000;font-size:12px;font-weight:800;letter-spacing:.06em;padding:5px 12px;border-radius:8px;
+  .pdfbadge{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);z-index:6;
+    background:#fff;color:#000;font-size:13px;font-weight:800;letter-spacing:.06em;padding:6px 14px;border-radius:8px;
+    box-shadow:0 6px 18px rgba(0,0,0,.5);
     opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.5s}
 
   /* real screenshot gallery */
