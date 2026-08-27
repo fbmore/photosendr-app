@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoSendr — Photos to your list, in a tap</title>
+<meta name="description" content="Snap or pick up to six photos, tidy them up, and send them to the people who always want them — as photos or a single PDF. No account, nothing leaves your phone.">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<style>
+  :root{
+    --ink:#ffffff; --muted:rgba(255,255,255,.5); --muted2:rgba(255,255,255,.7);
+    --canvas:#000000; --surface:rgba(255,255,255,.06); --surface2:rgba(255,255,255,.09);
+    --line:rgba(255,255,255,.1); --accent:#2b6acc;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--canvas);color:var(--ink);
+    font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:var(--ink);text-decoration:none}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  svg{display:block}
+
+  /* hero */
+  header.hero{text-align:center;padding:96px 24px 72px;
+    background:radial-gradient(52% 40% at 50% 8%,rgba(43,106,204,.12),transparent 70%)}
+  .logo{width:132px;height:132px;margin:0 auto 26px;display:block;animation:floaty 5s ease-in-out infinite}
+  .logo svg{display:block}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  h1{font-size:clamp(38px,7vw,64px);font-weight:300;letter-spacing:-.02em;margin:0 0 14px}
+  .tag{font-size:clamp(16px,2.3vw,20px);color:var(--muted2);font-weight:300;max-width:540px;margin:0 auto 30px;white-space:pre-line}
+  .ctarow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .cta{display:inline-flex;gap:8px;align-items:center;background:#fff;color:#000;
+    font-weight:600;padding:13px 24px;border-radius:16px;font-size:16px}
+  .cta.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+  .soon{display:inline-block;margin:0 auto 18px;background:var(--surface);border:1px solid var(--line);
+    color:var(--muted2);font-size:14px;font-weight:500;padding:12px 22px;border-radius:16px}
+
+  /* feature rows */
+  section.feat{padding:60px 0;border-top:1px solid var(--line)}
+  .feat .wrap{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:center}
+  .feat.flip .wrap{grid-template-columns:300px 1fr}
+  .feat.flip .copy{order:2}
+  .feat h2{font-size:clamp(26px,3.6vw,34px);font-weight:600;letter-spacing:-.01em;margin:0 0 14px;line-height:1.12}
+  .feat p{color:var(--muted2);font-size:17px;font-weight:300;margin:0 0 18px}
+  .bul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .bul li{display:flex;gap:11px;align-items:center;color:var(--muted2);font-size:15px}
+  .bul li svg{width:17px;height:17px;flex:0 0 auto;opacity:.85}
+  @media(max-width:760px){
+    .feat .wrap,.feat.flip .wrap{grid-template-columns:1fr;gap:30px;justify-items:center}
+    .feat.flip .copy{order:0}.feat .copy{text-align:center}
+    .feat .bul{align-items:center}
+  }
+
+  /* phone */
+  .phone{width:288px;height:600px;border-radius:44px;background:#050505;
+    border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.7),inset 0 0 0 5px #000;
+    padding:14px;position:relative}
+  .phone .notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:104px;height:24px;background:#000;border-radius:99px;z-index:5}
+  .screen{width:100%;height:100%;border-radius:32px;background:#000;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .screen .st{display:flex;justify-content:space-between;align-items:center;padding:15px 22px 4px;font-size:12px;color:#fff;font-weight:600}
+  .screen .st svg{width:34px;height:12px;opacity:.9}
+  .screen .body{flex:1;display:flex;flex-direction:column;align-items:center;padding:26px 22px 22px;text-align:center}
+  .obTitle{font-size:21px;font-weight:600;letter-spacing:-.01em;margin:0 0 10px}
+  .obSub{font-size:12.5px;color:var(--muted);font-weight:300;line-height:1.5}
+  .obSub span{display:block}
+
+  /* photo grid mock */
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:26px}
+  .pgrid i{aspect-ratio:1;border-radius:12px;display:block;background:var(--surface);
+    opacity:0;transform:scale(.7);animation:tile 6s ease-in-out infinite}
+  .pgrid i.g1{background:linear-gradient(135deg,#e8d84a,#3fae6d,#4a90d9);animation-delay:0s}
+  .pgrid i.g2{background:linear-gradient(120deg,#e8c94a,#d97fb5,#b58ad9);animation-delay:.35s}
+  .pgrid i.g3{background:linear-gradient(160deg,#8fd94a,#e8a44a,#d95c5c);animation-delay:.7s}
+  .pgrid i.g4{background:linear-gradient(140deg,#4ad9c1,#4a7bd9,#8a5cd9);animation-delay:1.05s}
+  .pgrid i.g5{background:linear-gradient(150deg,#d9b04a,#d9634a,#c14ad9);animation-delay:1.4s}
+  .pgrid i.g6{background:linear-gradient(125deg,#4ac1d9,#4ad978,#c1d94a);animation-delay:1.75s}
+  @keyframes tile{0%{opacity:0;transform:scale(.7)}10%,88%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+  .sendpill{margin-top:24px;display:inline-flex;gap:8px;align-items:center;background:var(--surface2);
+    border:1px solid var(--line);border-radius:99px;padding:10px 18px;font-size:13px;font-weight:600;color:#fff;
+    opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.2s}
+  .sendpill svg{width:15px;height:15px}
+  @keyframes pop{0%{opacity:0;transform:translateY(6px)}8%,90%{opacity:1;transform:none}100%{opacity:1}}
+
+  /* edit mock */
+  .editstage{flex:1;display:flex;align-items:center;justify-content:center}
+  .editcard{width:150px;height:150px;border-radius:16px;background:linear-gradient(135deg,#e8d84a,#3fae6d,#4a90d9);
+    animation:edits 7s ease-in-out infinite;position:relative}
+  .editcard::after{content:"";position:absolute;inset:16px;border:1.5px solid rgba(255,255,255,.9);border-radius:4px;
+    opacity:0;animation:cropframe 7s ease-in-out infinite}
+  @keyframes edits{
+    0%,18%{transform:rotate(0);filter:grayscale(0)}
+    28%,46%{transform:rotate(90deg);filter:grayscale(0)}
+    56%,74%{transform:rotate(90deg);filter:grayscale(1)}
+    84%,100%{transform:rotate(0);filter:grayscale(0)}}
+  @keyframes cropframe{0%,74%{opacity:0}84%,96%{opacity:1}100%{opacity:0}}
+  .editrow{display:flex;gap:20px;justify-content:center;margin-top:26px}
+  .editrow svg{width:20px;height:20px;opacity:.85}
+
+  /* recipients mock */
+  .imp{display:flex;flex-direction:column;gap:12px;margin-top:26px;width:100%}
+  .imp .row{display:flex;align-items:center;gap:13px;text-align:left;font-size:14px;color:#fff;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+    opacity:0;transform:translateY(10px);animation:up 5.6s ease-in-out infinite}
+  .imp .row svg{width:20px;height:20px;opacity:.92;flex:0 0 auto}
+  .imp .row:nth-child(1){animation-delay:0s}.imp .row:nth-child(2){animation-delay:.16s}.imp .row:nth-child(3){animation-delay:.32s}
+  @keyframes up{0%{opacity:0;transform:translateY(10px)}12%,90%{opacity:1;transform:none}100%{opacity:1}}
+  .prefilled{margin-top:22px;display:inline-flex;gap:7px;align-items:center;color:#fff;font-size:13px;font-weight:500;
+    opacity:0;animation:pop 5.6s ease-in-out infinite;animation-delay:.7s}
+  .prefilled svg{width:16px;height:16px}
+
+  /* pdf stack mock */
+  .stackstage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;width:100%}
+  .stack{position:relative;width:120px;height:150px}
+  .stack i{position:absolute;inset:0;border-radius:12px;display:block;animation:collapse 6s ease-in-out infinite}
+  .stack i:nth-child(1){background:linear-gradient(135deg,#e8d84a,#3fae6d,#4a90d9);--tx:-70px;--rot:-8deg;z-index:3}
+  .stack i:nth-child(2){background:linear-gradient(120deg,#e8c94a,#d97fb5,#b58ad9);--tx:0px;--rot:0deg;z-index:2}
+  .stack i:nth-child(3){background:linear-gradient(160deg,#8fd94a,#e8a44a,#d95c5c);--tx:70px;--rot:8deg;z-index:1}
+  @keyframes collapse{
+    0%,22%{transform:translateX(var(--tx)) rotate(0)}
+    40%,86%{transform:translateX(0) rotate(var(--rot))}
+    100%{transform:translateX(var(--tx)) rotate(0)}}
+  .pdfbadge{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+    background:#fff;color:#000;font-size:12px;font-weight:800;letter-spacing:.06em;padding:5px 12px;border-radius:8px;
+    opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.5s}
+
+  /* real screenshot gallery */
+  .gallery{padding:70px 0;border-top:1px solid var(--line);text-align:center}
+  .gallery h2{font-size:clamp(26px,3.6vw,34px);font-weight:600;margin:0 0 6px}
+  .gallery p{color:var(--muted2);font-weight:300;max-width:520px;margin:0 auto 8px}
+  .shots{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+  .shotframe{width:220px;border-radius:34px;border:1px solid var(--line);background:#000;padding:8px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .shotframe img{width:100%;display:block;border-radius:26px}
+
+  /* pricing */
+  .price{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+  .price .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 26px;min-width:150px}
+  .price .card.best{border-color:rgba(255,255,255,.4)}
+  .price .card .amt{font-size:24px;font-weight:700}
+  .price .card .per{color:var(--muted);font-size:13px;font-weight:300;margin-top:2px}
+
+  footer{padding:52px 24px 68px;text-align:center;color:var(--muted);border-top:1px solid var(--line);font-size:14px;font-weight:300}
+  footer a{color:var(--muted2);margin:0 10px}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important}
+    .pgrid i,.sendpill,.imp .row,.prefilled,.pdfbadge{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+
+<!-- inline vector icons (SF-Symbol style, monochrome) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="i-cell"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></g>
+  <g id="i-check"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g id="i-photo"><rect x="3" y="5" width="18" height="14" rx="2.4"/><circle cx="8.5" cy="10" r="1.6"/><path d="M5 18l4.5-4.5L13 17l3-3 3 3"/></g>
+  <g id="i-cam"><rect x="3" y="7" width="18" height="13" rx="2.4"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13" r="3.4"/></g>
+  <g id="i-crop"><path d="M7 3v14h14M3 7h14v14" stroke-linecap="round"/></g>
+  <g id="i-rot"><path d="M5 12a7 7 0 1 0 2-4.9" stroke-linecap="round"/><path d="M7 3v4h4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g id="i-bw"><circle cx="12" cy="12" r="8.4"/><path d="M12 3.6v16.8A8.4 8.4 0 0 0 12 3.6z" fill="#fff" stroke="none"/></g>
+  <g id="i-mail"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3.6 6.5L12 13l8.4-6.5"/></g>
+  <g id="i-doc"><path d="M6 3h8l4 4v14H6z" stroke-linejoin="round"/><path d="M14 3v4h4"/></g>
+  <g id="i-send"><path d="M21 3L10 14M21 3l-7 18-3.5-7.5L3 10z" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs></svg>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="logo" id="logoAnim" role="img" aria-label="PhotoSendr">
+    <noscript><img src="logo.png" width="120" height="120" alt="PhotoSendr"></noscript>
+  </div>
+  <h1>PhotoSendr</h1>
+  <p class="tag">Photos to your list, in a tap
+— as photos or a single PDF.</p>
+  <!-- Once the app is live, swap this .soon div for the badge link:
+  <a class="appstore heroBadge" href="https://apps.apple.com/app/idXXXXXXXX" target="_blank" rel="noopener" aria-label="Download PhotoSendr on the App Store">
+    <img src="appstore-badge.svg" alt="Download on the App Store">
+  </a> -->
+  <div class="soon">Coming soon to the App&nbsp;Store</div>
+  <div class="ctarow">
+    <a class="cta" href="#tour">See the tour</a>
+    <a class="cta ghost" href="support.html">Support</a>
+  </div>
+</header>
+
+<div id="tour"></div>
+
+<!-- 1 · SIX SLOTS -->
+<section class="feat">
+  <div class="wrap">
+    <div class="copy">
+      <h2>Six slots. One send.</h2>
+      <p>Fill the grid from your camera or photo library. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap straight from the camera</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-photo"/></svg>Or pick from your library</li>
+      </ul>
+    </div>
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Six slots.<br>One send.</div>
+        <div class="pgrid">
+          <i class="g1"></i><i class="g2"></i><i class="g3"></i>
+          <i class="g4"></i><i class="g5"></i><i class="g6"></i>
+        </div>
+        <div class="sendpill"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.7" style="stroke:#fff"><use href="#i-send"/></svg>Share 6 photos</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 2 · EDIT -->
+<section class="feat flip">
+  <div class="wrap">
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Tidy each photo<br>in one tap</div>
+        <div class="obSub"><span>Crop · Rotate · Black &amp; white</span><span>Every edit is one tap to undo</span></div>
+        <div class="editstage"><div class="editcard"></div></div>
+        <div class="editrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-crop"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-rot"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><use href="#i-bw"/></svg>
+        </div>
+      </div>
+    </div></div>
+    <div class="copy">
+      <h2>Tidy each photo in one tap</h2>
+      <p>Crop with Original, Square, or Free presets. Rotate in 90° steps. Flip to black &amp; white and back. Save any edit to your photo library.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-crop"/></svg>Crop, rotate, black &amp; white</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Always one tap to undo</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · RECIPIENTS -->
+<section class="feat">
+  <div class="wrap">
+    <div class="copy">
+      <h2>Your list, saved once</h2>
+      <p>Set your recipients, subject, and message one time. Every send starts pre-addressed — edit anything before it goes, or filter down to a single person.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-mail"/></svg>Pre-filled email, every time</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Sends through your own Mail app</li>
+      </ul>
+    </div>
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Your list,<br>saved once</div>
+        <div class="imp">
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-mail"/></svg>grandma@example.com</div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-mail"/></svg>bookkeeper@example.com</div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-mail"/></svg>team@example.com</div>
+        </div>
+        <div class="prefilled"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Subject &amp; message pre-filled</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 4 · PDF -->
+<section class="feat flip">
+  <div class="wrap">
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Or one tidy PDF</div>
+        <div class="obSub"><span>Flip the PDF toggle and every photo</span><span>merges into a single attachment</span></div>
+        <div class="stackstage">
+          <div class="stack"><i></i><i></i><i></i><span class="pdfbadge">PDF</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="copy">
+      <h2>Or one tidy PDF</h2>
+      <p>Some inboxes want attachments; some want a single document. Flip one toggle and PhotoSendr merges everything into a PDF — perfect for receipts, forms, and paperwork.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>Every photo, one attachment</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Also AirDrop, Messages &amp; more</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- REAL SCREENSHOTS -->
+<section class="gallery">
+  <div class="wrap">
+    <h2>Straight from the app</h2>
+    <p>Real screens — the photo grid, the share sheet with its PDF toggle, and the crop tool.</p>
+    <div class="shots">
+      <div class="shotframe"><img src="shot-grid.png" alt="Photo grid" loading="lazy"></div>
+      <div class="shotframe"><img src="shot-share.png" alt="Share sheet with PDF toggle" loading="lazy"></div>
+      <div class="shotframe"><img src="shot-crop.png" alt="Crop tool" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY + PRICING -->
+<section class="gallery" style="padding-top:24px">
+  <div class="wrap">
+    <h2>Private by design</h2>
+    <p>No account, no servers, no tracking. Your photos stay on your phone until you send them — through your own Mail app or share sheet.</p>
+    <div class="price">
+      <div class="card best"><div class="amt">Free</div><div class="per">No subscriptions, no catches</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 Francesco Bertocci LLC · PhotoSendr
+  <div style="margin-top:10px"><a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>·<a href="support.html">Support</a></div>
+</footer>
+
+<script src="lottie_light.min.js"></script>
+<script>
+  // Hero logo — the same Lottie animation the app uses, auto-reverse loop.
+  (function(){
+    var box=document.getElementById('logoAnim');
+    if(!box||!window.lottie) return;
+    var anim=lottie.loadAnimation({container:box,renderer:'svg',loop:false,autoplay:true,path:'logo.json'});
+    anim.addEventListener('DOMLoaded',function(){ anim.setSpeed(0.8); });
+    anim.addEventListener('complete',function(){
+      anim.setDirection(anim.playDirection===1?-1:1);
+      anim.play();
+    });
+  })();
+</script>
+</body>
+</html>
