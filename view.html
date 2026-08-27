@@ -22,6 +22,8 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
   .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
   .grid img{width:100%;display:block}
+  .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .grid video{width:100%;display:block}
   .state{padding:60px 0;text-align:center;color:var(--muted);font-size:17px}
   .state b{color:var(--ink)}
   .dl{display:inline-block;margin-top:22px;background:#fff;color:#000;font-weight:600;font-size:14px;
@@ -45,42 +47,40 @@
   </footer>
 </div>
 
-<script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
 <script>
 (function(){
-  // === CONFIG — the API token comes from CloudKit Console (Web Services) ===
-  var CK_TOKEN = '4280390a9b9e3e0c65dfa221866d105ed6c249c84e7004cfc93080a1c3c0b783';
-  var CK_ENV = 'development';   // switch to 'production' after schema deploy
+  // CloudKit Web Services REST — tried in order. Release builds write to
+  // Production; Debug builds write to Development.
   var CONTAINER = 'iCloud.com.fbmore.PhotoSendrV2';
+  var ENVS = [
+    { env: 'production',  token: 'REPLACE_WITH_PROD_TOKEN' },
+    { env: 'development', token: '4280390a9b9e3e0c65dfa221866d105ed6c249c84e7004cfc93080a1c3c0b783' }
+  ].filter(function(e){ return e.token.indexOf('REPLACE') !== 0; });
 
   var content = document.getElementById('content');
   function state(html){ content.innerHTML = '<div class="state">'+html+'</div>'; }
 
   var recordName = (location.hash || '').replace(/^#/,'');
   if(!recordName){ state('This link is missing its photo id.'); return; }
-  if(CK_TOKEN.indexOf('REPLACE') === 0){ state('Viewer not configured yet.'); return; }
-  if(!window.CloudKit){ state('Could not load the viewer.'); return; }
+  if(!ENVS.length){ state('Viewer not configured yet.'); return; }
 
-  CloudKit.configure({
-    containers: [{
-      containerIdentifier: CONTAINER,
-      apiTokenAuth: { apiToken: CK_TOKEN, persist: false },
-      environment: CK_ENV
-    }]
-  });
-
-  var db = CloudKit.getDefaultContainer().publicCloudDatabase;
-  db.fetchRecords(recordName).then(function(resp){
-    if(resp.hasErrors){
-      var code = resp.errors[0] && resp.errors[0].ckErrorCode;
-      if(code === 'NOT_FOUND' || code === 'BAD_REQUEST'){
-        state('<b>This link has expired</b><br>or the photos are no longer shared.');
-      } else {
-        state('Couldn’t load the photos ('+(code||'error')+'). Try again in a moment.');
-      }
+  function lookup(i){
+    if(i >= ENVS.length){
+      state('<b>This link has expired</b><br>or the photos are no longer shared.');
       return;
     }
-    var rec = resp.records[0];
+    var e = ENVS[i];
+    fetch('https://api.apple-cloudkit.com/database/1/'+CONTAINER+'/'+e.env+'/public/records/lookup?ckAPIToken='+e.token, {
+      method: 'POST',
+      body: JSON.stringify({ records: [{ recordName: recordName }] })
+    }).then(function(r){ return r.json(); }).then(function(resp){
+      var rec = resp.records && resp.records[0];
+      if(!rec || rec.serverErrorCode || !rec.fields){ lookup(i+1); return; }
+      render(rec);
+    }).catch(function(){ lookup(i+1); });
+  }
+
+  function render(rec){
     var f = rec.fields || {};
     var title = (f.title && f.title.value) || 'Shared photos';
     var expiresAt = f.expiresAt ? new Date(f.expiresAt.value) : null;
@@ -89,25 +89,37 @@
       return;
     }
     var items = (f.items && f.items.value) || [];
+    var types = (f.itemTypes && f.itemTypes.value) || [];
     if(!items.length){ state('No photos in this share.'); return; }
 
     var html = '<h1></h1><div class="meta"></div><div class="grid">';
     items.forEach(function(it, i){
-      var url = it.downloadURL || (it.value && it.value.downloadURL) || '';
-      url = url.replace('${f}', 'photo-'+(i+1)+'.jpg');
-      html += '<a href="'+url+'" download="photo-'+(i+1)+'.jpg" target="_blank" rel="noopener">'+
-              '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></a>';
+      var type = types[i] || 'photo';
+      var isVideo = type === 'video';
+      var name = (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
+      var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', name);
+      if(isVideo){
+        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'"></video></div>';
+      } else {
+        html += '<a href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
+                '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></a>';
+      }
     });
     html += '</div>';
     content.innerHTML = html;
     content.querySelector('h1').textContent = title;
-    content.querySelector('.meta').textContent = items.length+' photo'+(items.length===1?'':'s')+
-      (expiresAt ? ' · link expires '+expiresAt.toLocaleDateString() : '');
+    var photos = types.length ? types.filter(function(t){return t!=='video';}).length : items.length;
+    var vids = types.filter(function(t){return t==='video';}).length;
+    var parts = [];
+    if(photos) parts.push(photos+' photo'+(photos===1?'':'s'));
+    if(vids) parts.push(vids+' video'+(vids===1?'':'s'));
+    if(expiresAt) parts.push('link expires '+expiresAt.toLocaleDateString());
+    content.querySelector('.meta').textContent = parts.join(' \u00b7 ');
     // Count the view (anonymous: stores only link-id -> integer)
-    try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(e) {}
-  }).catch(function(){
-    state('Couldn’t load the photos. Check your connection and try again.');
-  });
+    try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {}
+  }
+
+  lookup(0);
 })();
 </script>
 </body>
