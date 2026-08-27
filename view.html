@@ -103,6 +103,8 @@
     content.querySelector('h1').textContent = title;
     content.querySelector('.meta').textContent = items.length+' photo'+(items.length===1?'':'s')+
       (expiresAt ? ' · link expires '+expiresAt.toLocaleDateString() : '');
+    // Count the view (anonymous: stores only link-id -> integer)
+    try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(e) {}
   }).catch(function(){
     state('Couldn’t load the photos. Check your connection and try again.');
   });
