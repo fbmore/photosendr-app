@@ -93,7 +93,7 @@
 
     var html = '<h1></h1><div class="meta"></div><div class="grid">';
     items.forEach(function(it, i){
-      var url = (it.value && it.value.downloadURL) || '';
+      var url = it.downloadURL || (it.value && it.value.downloadURL) || '';
       url = url.replace('${f}', 'photo-'+(i+1)+'.jpg');
       html += '<a href="'+url+'" download="photo-'+(i+1)+'.jpg" target="_blank" rel="noopener">'+
               '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></a>';
