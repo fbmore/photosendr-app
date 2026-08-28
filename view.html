@@ -102,7 +102,9 @@
       var name = (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', name);
       if(isVideo){
-        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'"></video></div>';
+        // #t=0.001 makes Safari (and friends) paint the first frame as a
+        // poster instead of leaving the tile black.
+        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'#t=0.001"></video></div>';
       } else {
         photoEntries.push({ url: url, name: name });
         html += '<a href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
@@ -192,16 +194,29 @@
     return new Blob(parts.concat(central, [eocd.buffer]), { type: 'application/zip' });
   }
 
+  // Apple's asset CDN sends no CORS headers, so a direct fetch is blocked
+  // by the browser. Fall back to our view-counter worker, which proxies
+  // Apple asset hosts only (GET, never cached).
+  var ASSET_PROXY = 'https://photosendr-views.fbmore.workers.dev/asset?url=';
+  function fetchAsset(u){
+    return fetch(u).then(function(r){
+      if(!r.ok) throw new Error('direct fetch failed');
+      return r.arrayBuffer();
+    }).catch(function(){
+      return fetch(ASSET_PROXY + encodeURIComponent(u)).then(function(r){
+        if(!r.ok) throw new Error('proxy fetch failed');
+        return r.arrayBuffer();
+      });
+    });
+  }
+
   function downloadAll(entries, title, btn){
     if(btn.disabled) return;
     btn.disabled = true;
     var orig = btn.textContent, files = [], done = 0;
     btn.textContent = 'Preparing… 0/'+entries.length;
     Promise.all(entries.map(function(e, i){
-      return fetch(e.url).then(function(r){
-        if(!r.ok) throw new Error('fetch failed');
-        return r.arrayBuffer();
-      }).then(function(buf){
+      return fetchAsset(e.url).then(function(buf){
         files[i] = { name: e.name, data: new Uint8Array(buf) };
         done++;
         btn.textContent = 'Preparing… '+done+'/'+entries.length;
