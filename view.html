@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shared photos — PhotoSendr</title>
 <meta name="robots" content="noindex">
+<!-- Static fallback for link previews. Per-share og (title + cover) is
+     served by the /v/<id> worker route; this covers direct view.html links,
+     whose #hash never reaches any server. -->
+<meta property="og:title" content="Shared photos — PhotoSendr">
+<meta property="og:description" content="Photos shared with PhotoSendr — the link expires on its own.">
+<meta property="og:image" content="https://photosendr.com/logo.png">
 <link rel="icon" type="image/png" href="logo.png">
 <style>
   :root{--ink:#fff;--muted:rgba(255,255,255,.55);--canvas:#000;--surface:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--accent:#2b6acc}
