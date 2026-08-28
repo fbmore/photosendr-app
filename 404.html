@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoSendr</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/logo.png">
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center}
+  a{color:#fff}
+</style>
+</head>
+<body>
+<div id="msg"><p>Page not found. <a href="/">PhotoSendr home</a></p></div>
+<script>
+// Fallback while /v/* is served by GitHub Pages instead of the worker
+// (e.g. mid-DNS-propagation): forward share links to the hash-based viewer.
+(function(){
+  var m = location.pathname.match(/^\/v\/([A-Za-z0-9-]{10,100})$/);
+  if(m){
+    document.getElementById('msg').textContent = 'Opening shared photos…';
+    location.replace('/view.html#' + m[1]);
+  }
+})();
+</script>
+</body>
+</html>
