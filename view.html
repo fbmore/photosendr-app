@@ -36,6 +36,8 @@
   .dl[disabled]{opacity:.6;cursor:default}
   footer{margin-top:48px;font-size:13px;color:var(--muted)}
   footer a{color:var(--muted)}
+  footer .fnote{margin-top:10px;font-size:12px;color:var(--muted)}
+  footer .fnote a{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -50,6 +52,11 @@
   <footer>
     Shared with <a href="index.html">PhotoSendr</a> — photos to your list, in a tap.
     Links expire automatically.
+    <div class="fnote">
+      Files in this share were uploaded by the person who sent you this link and are
+      stored in Apple's iCloud (CloudKit) — PhotoSendr runs no servers of its own.
+      <a id="reportLink" href="mailto:fbmore+photosendr@gmail.com?subject=Report%20a%20shared%20PhotoSendr%20link">Report this share</a>
+    </div>
   </footer>
 </div>
 
@@ -67,6 +74,19 @@
   function state(html){ content.innerHTML = '<div class="state">'+html+'</div>'; }
 
   var recordName = (location.hash || '').replace(/^#/,'');
+
+  // Pre-fill the report email with everything support needs to find and
+  // delete the record.
+  var reportLink = document.getElementById('reportLink');
+  if(reportLink){
+    reportLink.href = 'mailto:fbmore+photosendr@gmail.com'
+      + '?subject=' + encodeURIComponent('Report a shared PhotoSendr link')
+      + '&body=' + encodeURIComponent(
+          'I would like to report this shared link:\n\n' + location.href +
+          '\n\nRecord: ' + (recordName || 'unknown') +
+          '\n\nReason: ');
+  }
+
   if(!recordName){ state('This link is missing its photo id.'); return; }
   if(!ENVS.length){ state('Viewer not configured yet.'); return; }
 

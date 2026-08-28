@@ -64,6 +64,8 @@
     <li><strong>You stay in control.</strong> Links expire automatically after 7 days, and you can stop sharing any link earlier from Settings → Shared Links; that deletes the uploaded copies.</li>
     <li><strong>What's uploaded</strong> is exactly what you chose to share: the media, a title, and the expiry date. No names, emails, or identifiers travel with it.</li>
     <li><strong>View counts.</strong> To show you how many times a link was opened, the viewer page pings a small counter service that stores <em>only</em> a random link ID and a number — no IP addresses, no location, no cookies, nothing about the viewer or about you.</li>
+    <li><strong>Downloads.</strong> The viewer's download buttons fetch files directly from Apple's iCloud. When a browser blocks that direct fetch, the bytes pass through a small relay we run on Cloudflare; it streams the file and stores nothing — no copies, no content logs.</li>
+    <li><strong>Reporting.</strong> Every shared page carries a "Report this share" link that opens an email to us containing the link's address, so we can delete a reported share from iCloud. We receive only what the reporter chooses to send.</li>
   </ul>
 
   <h2>Device permissions and why</h2>
