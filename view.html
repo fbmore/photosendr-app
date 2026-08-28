@@ -20,9 +20,13 @@
   h1{font-size:26px;font-weight:600;margin:0 0 4px}
   .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-  .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);align-self:start}
   .grid img{width:100%;display:block}
-  .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
+    display:flex;flex-direction:column}
+  .vdl{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--surface);
+    color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer}
+  .vdl[disabled]{opacity:.6;cursor:default}
   .grid video{width:100%;display:block}
   .state{padding:60px 0;text-align:center;color:var(--muted);font-size:17px}
   .state b{color:var(--ink)}
@@ -94,7 +98,7 @@
     var types = (f.itemTypes && f.itemTypes.value) || [];
     if(!items.length){ state('No photos in this share.'); return; }
 
-    var photoEntries = [];
+    var photoEntries = [], videoEntries = [];
     var html = '<h1></h1><div class="meta"></div><div class="dlrow"></div><div class="grid">';
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
@@ -104,7 +108,9 @@
       if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
         // poster instead of leaving the tile black.
-        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'#t=0.001"></video></div>';
+        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'#t=0.001"></video>'+
+                '<button class="vdl" data-i="'+videoEntries.length+'">Download video</button></div>';
+        videoEntries.push({ url: url, name: name });
       } else {
         photoEntries.push({ url: url, name: name });
         html += '<a href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
@@ -121,6 +127,11 @@
       btn.addEventListener('click', function(){ downloadAll(photoEntries, title, btn); });
       content.querySelector('.dlrow').appendChild(btn);
     }
+    Array.prototype.forEach.call(content.querySelectorAll('.vdl'), function(vbtn){
+      vbtn.addEventListener('click', function(){
+        downloadVideo(videoEntries[parseInt(vbtn.dataset.i, 10)], vbtn);
+      });
+    });
     var photos = types.length ? types.filter(function(t){return t!=='video';}).length : items.length;
     var vids = types.filter(function(t){return t==='video';}).length;
     var parts = [];
@@ -207,6 +218,29 @@
         if(!r.ok) throw new Error('proxy fetch failed');
         return r.arrayBuffer();
       });
+    });
+  }
+
+  // One video, saved as a file. The download attribute is ignored on
+  // cross-origin links, so fetch (direct, then proxy) into a blob first.
+  function downloadVideo(entry, btn){
+    if(!entry || btn.disabled) return;
+    btn.disabled = true;
+    var orig = 'Download video';
+    btn.textContent = 'Downloading…';
+    fetchAsset(entry.url).then(function(buf){
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([buf], { type: 'video/mp4' }));
+      a.download = entry.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
+      btn.textContent = orig;
+      btn.disabled = false;
+    }).catch(function(){
+      btn.textContent = 'Couldn’t download — tap to retry';
+      btn.disabled = false;
     });
   }
 
