@@ -24,6 +24,7 @@
   .lead { font-size:19px; color:var(--ink); }
   hr { border:none; border-top:1px solid rgba(255,255,255,.09); margin:40px 0; }
   .pill { display:inline-block; background:var(--accent); color:#000; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:999px; font-weight:700; }
+  code { background:var(--surface); padding:2px 6px; border-radius:6px; font-size:14px; }
   footer { margin-top:56px; font-size:13px; color:var(--muted); }
   footer a { color:var(--muted); }
 </style>
@@ -34,48 +35,59 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 27 August 2026</p>
+  <p class="muted">Last updated: 28 August 2026</p>
 
-  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does all of it on your device. It has no accounts, no servers, and no analytics. Your photos never leave your phone through us.</p>
+  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
 
-  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information — because we have nowhere to send them.</p>
+  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. The only things that ever leave your device are shares you start yourself.</p>
 
   <hr>
 
   <h2>What PhotoSendr works with</h2>
-  <p>PhotoSendr works with photos <strong>you choose</strong> — taken with the camera inside the app or picked from your photo library. All editing (crop, rotate, black &amp; white) and PDF creation happens <strong>entirely on your device</strong> using Apple's frameworks. Nothing is uploaded anywhere by the app.</p>
+  <p>PhotoSendr works with photos and videos <strong>you choose</strong> — taken with the camera inside the app or picked with Apple's out-of-process photo picker (which shows the app only the items you pick, never your whole library). All editing (crop, rotate, black &amp; white), video compression, and PDF creation happens <strong>on your device</strong> using Apple's frameworks.</p>
 
   <h2>What is stored on your device</h2>
   <ul>
-    <li><strong>Your photos</strong> — the photos you add to the grid are kept in the app's private storage on your device so they're still there when you come back. Deleting a photo in the app (or clearing all) removes it.</li>
+    <li><strong>Your sets</strong> — the photos and videos you add to your sets are kept in the app's private storage on your device so they're still there when you come back. Deleting an item or a set in the app removes it.</li>
     <li><strong>Your defaults</strong> — the recipient list, email subject, and message you save in Settings live on your device only.</li>
     <li><strong>Saved edits</strong> — when you tap Save, the edited photo is written back to your own photo library.</li>
+    <li><strong>Your share links</strong> — the list of links you've created (address, title, expiry) is stored on your device so you can track and revoke them.</li>
   </ul>
   <p>The developer has no access to any of this.</p>
 
   <h2>How sending works</h2>
-  <p>When you share, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send.</p>
+  <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send.</p>
+
+  <h2>iCloud share links (Pro)</h2>
+  <p>When you create a share link, the photos and videos in the current set are uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
+  <ul>
+    <li><strong>You stay in control.</strong> Links expire automatically after 7 days, and you can stop sharing any link earlier from Settings → Shared Links; that deletes the uploaded copies.</li>
+    <li><strong>What's uploaded</strong> is exactly what you chose to share: the media, a title, and the expiry date. No names, emails, or identifiers travel with it.</li>
+    <li><strong>View counts.</strong> To show you how many times a link was opened, the viewer page pings a small counter service that stores <em>only</em> a random link ID and a number — no IP addresses, no location, no cookies, nothing about the viewer or about you.</li>
+  </ul>
 
   <h2>Device permissions and why</h2>
   <ul>
     <li><strong>Camera</strong> — only to take photos inside the app, only when you choose the camera mode.</li>
-    <li><strong>Photo library (selection)</strong> — only to pick the photos you choose to add.</li>
+    <li><strong>Photo library picking</strong> — uses Apple's system picker, which runs outside the app and needs no permission: the app receives only the photos and videos you pick.</li>
     <li><strong>Photo library (add)</strong> — only to save edited photos back when you tap Save.</li>
+    <li><strong>iCloud</strong> — used only when you create a share link, to upload that share to the app's public database.</li>
   </ul>
 
   <h2>What we do <em>not</em> collect</h2>
   <ul>
     <li>No account, sign-in, name, email, or phone number is required or collected.</li>
-    <li>No analytics, usage tracking, crash reporting, or advertising SDKs of any kind.</li>
+    <li>No analytics, usage tracking, or advertising SDKs of any kind.</li>
     <li>No location data.</li>
-    <li>Your photos, recipient addresses, and messages are never sent to the developer or any third-party server.</li>
+    <li>Your photos, recipient addresses, and messages are never sent to the developer.</li>
   </ul>
 
-  <h2>Third-party code</h2>
-  <p>PhotoSendr includes one open-source library, <a href="https://github.com/airbnb/lottie-ios" target="_blank" rel="noopener">Lottie</a>, used solely to render the app's animations. It collects nothing and makes no network requests.</p>
-
   <h2>Purchases</h2>
-  <p>PhotoSendr is free. There are no subscriptions, purchases, or payment processors.</p>
+  <p>PhotoSendr is free for one set of up to 6 photos. <strong>PhotoSendr Pro</strong> (multiple sets, larger sets, videos, iCloud share links) is an optional purchase — a monthly or yearly auto-renewing subscription or a one-time lifetime unlock — processed entirely by <strong>Apple</strong> through your App Store account. The app never sees your payment details.</p>
+  <p>To manage subscriptions and restore purchases, the app uses <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat</a>, which receives purchase receipts tied to a <em>random anonymous identifier</em> — never your name, email, or Apple ID. If you bought PhotoSendr before version 5, the app detects that on-device through Apple's receipt and unlocks Pro for free; nothing is sent anywhere for this.</p>
+
+  <h2>Third-party code</h2>
+  <p>PhotoSendr includes two libraries: <a href="https://github.com/airbnb/lottie-ios" target="_blank" rel="noopener">Lottie</a>, used solely to render the app's animations (collects nothing, makes no network requests), and the <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat</a> SDK described above, which is contacted only for purchase management.</p>
 
   <h2>Children</h2>
   <p>PhotoSendr is not directed at children and collects no personal information from anyone.</p>
