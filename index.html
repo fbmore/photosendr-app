@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhotoSendr — Photos to your list, in a tap</title>
-<meta name="description" content="Snap or pick up to six photos, tidy them up, and send them to the people who always want them — as photos or a single PDF. No account, nothing leaves your phone.">
+<meta name="description" content="Snap or pick photos — and videos with Pro — tidy them up, and send them to the people who always want them: by email, as a single PDF, or as an expiring iCloud link. No account, no tracking.">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <style>
@@ -25,8 +25,10 @@
   /* hero */
   header.hero{text-align:center;padding:96px 24px 72px;
     background:radial-gradient(52% 40% at 50% 8%,rgba(43,106,204,.12),transparent 70%)}
-  .logo{width:132px;height:132px;margin:0 auto 26px;display:block;animation:floaty 5s ease-in-out infinite}
+  .logo{width:132px;height:132px;margin:0 auto 26px;display:block;animation:floaty 5s ease-in-out infinite;
+    border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.55)}
   .logo svg{display:block}
+  .logo noscript img{border-radius:50%}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
   h1{font-size:clamp(38px,7vw,64px);font-weight:300;letter-spacing:-.02em;margin:0 0 14px}
   .tag{font-size:clamp(16px,2.3vw,20px);color:var(--muted2);font-weight:300;max-width:540px;margin:0 auto 30px;white-space:pre-line}
@@ -67,19 +69,53 @@
   .obSub span{display:block}
 
   /* photo grid mock */
-  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:26px}
+  .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin-top:26px}
   .pgrid i{aspect-ratio:1;border-radius:12px;display:block;background:var(--surface);
     opacity:0;transform:scale(.7);animation:tile 6s ease-in-out infinite}
   .pgrid i.g1{background:linear-gradient(135deg,#e8d84a,#3fae6d,#4a90d9);animation-delay:0s}
-  .pgrid i.g2{background:linear-gradient(120deg,#e8c94a,#d97fb5,#b58ad9);animation-delay:.35s}
-  .pgrid i.g3{background:linear-gradient(160deg,#8fd94a,#e8a44a,#d95c5c);animation-delay:.7s}
-  .pgrid i.g4{background:linear-gradient(140deg,#4ad9c1,#4a7bd9,#8a5cd9);animation-delay:1.05s}
-  .pgrid i.g5{background:linear-gradient(150deg,#d9b04a,#d9634a,#c14ad9);animation-delay:1.4s}
-  .pgrid i.g6{background:linear-gradient(125deg,#4ac1d9,#4ad978,#c1d94a);animation-delay:1.75s}
+  .pgrid i.g2{background:linear-gradient(120deg,#e8c94a,#d97fb5,#b58ad9);animation-delay:.3s}
+  .pgrid i.g3{background:linear-gradient(160deg,#8fd94a,#e8a44a,#d95c5c);animation-delay:.6s}
+  .pgrid i.g4{background:linear-gradient(140deg,#4ad9c1,#4a7bd9,#8a5cd9);animation-delay:.9s}
+  .pgrid i.g5{background:linear-gradient(150deg,#d9b04a,#d9634a,#c14ad9);animation-delay:1.2s}
+  .pgrid i.g6{background:linear-gradient(125deg,#4ac1d9,#4ad978,#c1d94a);animation-delay:1.5s}
+  .pgrid i.g7{background:linear-gradient(135deg,#d97fb5,#4a90d9,#3fae6d);animation-delay:2s}
+  .pgrid i.g8{background:linear-gradient(120deg,#8a5cd9,#e8c94a,#4ad9c1);animation-delay:2.3s}
+  .pgrid i.empty{opacity:1;transform:none;animation:none;background:rgba(255,255,255,.03);
+    border:1.5px dashed rgba(255,255,255,.25)}
   @keyframes tile{0%{opacity:0;transform:scale(.7)}10%,88%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
   .sendpill{margin-top:24px;display:inline-flex;gap:8px;align-items:center;background:var(--surface2);
     border:1px solid var(--line);border-radius:99px;padding:10px 18px;font-size:13px;font-weight:600;color:#fff;
-    opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.2s}
+    opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.8s}
+
+  /* pro chip */
+  .prochip{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:800;
+    letter-spacing:.12em;padding:4px 11px;border-radius:99px;margin-bottom:12px}
+
+  /* video mock */
+  .vidstage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+  .vidcard{width:170px;height:110px;border-radius:16px;background:linear-gradient(135deg,#4ad9c1,#4a7bd9,#8a5cd9);
+    position:relative;display:flex;align-items:center;justify-content:center;animation:floaty 5s ease-in-out infinite}
+  .vidcard .play{width:0;height:0;border-left:20px solid rgba(255,255,255,.95);
+    border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:5px}
+  .vidcard .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.45);
+    font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+  .linkpill{display:inline-flex;gap:7px;align-items:center;background:var(--surface2);border:1px solid var(--line);
+    border-radius:99px;padding:9px 16px;font-size:12px;font-weight:600;color:#fff;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .linkpill svg{width:14px;height:14px}
+
+  /* browser frame (laptop view) */
+  .browser{width:100%;max-width:520px;border-radius:14px;border:1px solid var(--line);background:#0a0a0a;
+    box-shadow:0 30px 80px rgba(0,0,0,.7);overflow:hidden;justify-self:center}
+  .browser .bbar{display:flex;align-items:center;gap:10px;padding:10px 14px;
+    background:rgba(255,255,255,.06);border-bottom:1px solid var(--line)}
+  .browser .bdots{display:flex;gap:6px}
+  .browser .bdots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18);display:block}
+  .browser .burl{flex:1;background:rgba(255,255,255,.07);border-radius:8px;font-size:12px;color:var(--muted2);
+    padding:5px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .browser img{width:100%;display:block}
+  .feat.wide .wrap{grid-template-columns:1fr 520px}
+  @media(max-width:900px){.feat.wide .wrap{grid-template-columns:1fr}}
   .sendpill svg{width:15px;height:15px}
   @keyframes pop{0%{opacity:0;transform:translateY(6px)}8%,90%{opacity:1;transform:none}100%{opacity:1}}
 
@@ -170,8 +206,8 @@
     <noscript><img src="logo.png" width="120" height="120" alt="PhotoSendr"></noscript>
   </div>
   <h1>PhotoSendr</h1>
-  <p class="tag">Photos to your list, in a tap
-— as photos or a single PDF.</p>
+  <p class="tag">Photos and videos to your list,
+in a tap — by email, PDF, or link.</p>
   <!-- Once the app is live, swap this .soon div for the badge link:
   <a class="appstore heroBadge" href="https://apps.apple.com/app/idXXXXXXXX" target="_blank" rel="noopener" aria-label="Download PhotoSendr on the App Store">
     <img src="appstore-badge.svg" alt="Download on the App Store">
@@ -185,26 +221,28 @@
 
 <div id="tour"></div>
 
-<!-- 1 · SIX SLOTS -->
+<!-- 1 · MULTIPLE SLOTS -->
 <section class="feat">
   <div class="wrap">
     <div class="copy">
-      <h2>Six slots. One send.</h2>
-      <p>Fill the grid from your camera or photo library. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds.</p>
+      <h2>Multiple slots. One send.</h2>
+      <p>Fill the grid from your camera or photo library. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds. Six slots free; with Pro the grid grows as you add.</p>
       <ul class="bul">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap straight from the camera</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-photo"/></svg>Or pick from your library</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cell"/></svg>The grid grows as you add — with Pro</li>
       </ul>
     </div>
     <div class="phone"><div class="notch"></div><div class="screen">
       <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
       <div class="body">
-        <div class="obTitle">Six slots.<br>One send.</div>
+        <div class="obTitle">Multiple slots.<br>One send.</div>
         <div class="pgrid">
           <i class="g1"></i><i class="g2"></i><i class="g3"></i>
           <i class="g4"></i><i class="g5"></i><i class="g6"></i>
+          <i class="g7"></i><i class="g8"></i><i class="empty"></i>
         </div>
-        <div class="sendpill"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.7" style="stroke:#fff"><use href="#i-send"/></svg>Share 6 photos</div>
+        <div class="sendpill"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.7" style="stroke:#fff"><use href="#i-send"/></svg>Share 8 photos</div>
       </div>
     </div></div>
   </div>
@@ -287,6 +325,54 @@
   </div>
 </section>
 
+<!-- 5 · VIDEOS (PRO) -->
+<section class="feat">
+  <div class="wrap">
+    <div class="copy">
+      <span class="prochip">PRO</span>
+      <h2>Send videos too</h2>
+      <p>Drop videos into any slot, right next to your photos. They travel to your people through an iCloud link — compressed so they play in any browser, no app needed.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Videos in any slot, next to photos</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Compressed to play in every browser</li>
+      </ul>
+    </div>
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Send videos too</div>
+        <div class="vidstage">
+          <div class="vidcard"><span class="play"></span><span class="dur">0:12</span></div>
+          <div class="linkpill"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-send"/></svg>icloud link · expires in 7 days</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 6 · ICLOUD LINK (PRO) — laptop view -->
+<section class="feat flip wide">
+  <div class="wrap">
+    <div class="browser">
+      <div class="bbar">
+        <div class="bdots"><i></i><i></i><i></i></div>
+        <div class="burl">photosendr.com/view.html#…</div>
+      </div>
+      <img src="shot-viewer.png" alt="A shared PhotoSendr link open in a desktop browser: photo grid, video player, and a Download all photos button" loading="lazy">
+    </div>
+    <div class="copy">
+      <span class="prochip">PRO</span>
+      <h2>Share an expiring iCloud link</h2>
+      <p>One tap uploads your set to iCloud behind an unguessable address. Anyone can open it in a browser and download everything as one file — no app, no account. Stop sharing whenever you like: the link dies and the copies are deleted from iCloud.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Opens in any browser — no app needed</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>View counts · revoke anytime</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>Expires on its own</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- REAL SCREENSHOTS -->
 <section class="gallery">
   <div class="wrap">
@@ -304,7 +390,7 @@
 <section class="gallery" style="padding-top:24px">
   <div class="wrap">
     <h2>Go further with Pro</h2>
-    <p>Keep separate sets for separate lives — properties, projects, grandparents. Add videos. Share an expiring iCloud link anyone can open in a browser, no app or account needed — and see how many times it was viewed, or stop sharing any time.</p>
+    <p>Multiple sets for separate lives — properties, projects, grandparents — each with its own photos and its own send. Plus videos, a growing grid, and expiring iCloud links with view counts.</p>
   </div>
 </section>
 
