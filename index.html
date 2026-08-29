@@ -33,6 +33,8 @@
   h1{font-size:clamp(38px,7vw,64px);font-weight:300;letter-spacing:-.02em;margin:0 0 14px}
   .tag{font-size:clamp(16px,2.3vw,20px);color:var(--muted2);font-weight:300;max-width:540px;margin:0 auto 30px;white-space:pre-line}
   .ctarow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .herovid{width:min(880px,92vw);margin:46px auto 0;display:block;border-radius:20px;
+    border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.7);background:#0b0f16}
   .cta{display:inline-flex;gap:8px;align-items:center;background:#fff;color:#000;
     font-weight:600;padding:13px 24px;border-radius:16px;font-size:16px}
   .cta.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
@@ -232,6 +234,10 @@ in a tap — by email, PDF, or link.</p>
     <a class="cta" href="#tour">See the tour</a>
     <a class="cta ghost" href="support.html">Support</a>
   </div>
+  <video class="herovid" autoplay muted loop playsinline preload="metadata" poster="media/pitch-poster.jpg"
+         aria-label="A 40-second silent tour of PhotoSendr: the photo grid, sets, quick edits, the saved recipient list, and an expiring iCloud share link.">
+    <source src="media/pitch-hero.mp4" type="video/mp4">
+  </video>
 </header>
 
 <div id="tour"></div>
