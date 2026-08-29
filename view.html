@@ -19,7 +19,8 @@
     font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px}
-  header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  header{display:flex;align-items:center;margin-bottom:28px}
+  header .brand{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}
   header img{width:40px;height:40px;border-radius:10px}
   header .name{font-weight:600}
   header .sub{font-size:13px;color:var(--muted)}
@@ -55,8 +56,10 @@
 <body>
 <div class="wrap">
   <header>
-    <img src="logo.png" alt="">
-    <div><div class="name">PhotoSendr</div><div class="sub">Shared photos</div></div>
+    <a class="brand" href="https://photosendr.com" aria-label="PhotoSendr home">
+      <img src="logo.png" alt="">
+      <div><div class="name">PhotoSendr</div><div class="sub">Shared photos</div></div>
+    </a>
   </header>
 
   <div id="content"><div class="state">Loading photos…</div></div>
