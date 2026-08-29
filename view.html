@@ -30,6 +30,12 @@
   .grid img{width:100%;display:block}
   .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
     display:flex;flex-direction:column}
+  .grid .pdfcard{border-radius:14px;border:1px solid var(--line);background:var(--surface);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    min-height:180px;text-decoration:none;color:inherit;padding:20px}
+  .grid .pdfcard .pdficon{font-size:40px;line-height:1}
+  .grid .pdfcard .pdfname{font-weight:600;font-size:15px}
+  .grid .pdfcard .pdfhint{font-size:12.5px;color:var(--muted)}
   .vdl{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--surface);
     color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer}
   .vdl[disabled]{opacity:.6;cursor:default}
@@ -129,9 +135,16 @@
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
       var isVideo = type === 'video';
-      var name = (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
-      var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', name);
-      if(isVideo){
+      var isPdf = type === 'pdf';
+      var name = isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+'.pdf'
+                       : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
+      var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
+      if(isPdf){
+        html += '<a class="pdfcard" href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
+                '<span class="pdficon">\uD83D\uDCC4</span>'+
+                '<span class="pdfname"></span>'+
+                '<span class="pdfhint">Tap to open or download the PDF</span></a>';
+      } else if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
         // poster instead of leaving the tile black.
         html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'#t=0.001"></video>'+
@@ -146,6 +159,9 @@
     html += '</div>';
     content.innerHTML = html;
     content.querySelector('h1').textContent = title;
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfcard .pdfname'), function(el){
+      el.textContent = title + ' (PDF)';
+    });
     if(photoEntries.length){
       var btn = document.createElement('button');
       btn.className = 'dl';
@@ -158,9 +174,11 @@
         downloadVideo(videoEntries[parseInt(vbtn.dataset.i, 10)], vbtn);
       });
     });
-    var photos = types.length ? types.filter(function(t){return t!=='video';}).length : items.length;
+    var photos = types.length ? types.filter(function(t){return t!=='video' && t!=='pdf';}).length : items.length;
     var vids = types.filter(function(t){return t==='video';}).length;
+    var pdfs = types.filter(function(t){return t==='pdf';}).length;
     var parts = [];
+    if(pdfs) parts.push(pdfs===1 ? '1 PDF' : pdfs+' PDFs');
     if(photos) parts.push(photos+' photo'+(photos===1?'':'s'));
     if(vids) parts.push(vids+' video'+(vids===1?'':'s'));
     if(expiresAt) parts.push('link expires '+expiresAt.toLocaleDateString());
