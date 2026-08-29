@@ -178,6 +178,14 @@
   .price .card .amt{font-size:24px;font-weight:700}
   .price .card .per{color:var(--muted);font-size:13px;font-weight:300;margin-top:2px}
 
+  /* why-not comparison cards */
+  .whynot{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px;text-align:left}
+  .whynot .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .whynot h3{font-size:16px;font-weight:600;margin:0 0 8px}
+  .whynot p{font-size:14px;color:var(--muted2);font-weight:300;margin:0;max-width:none}
+  .finedis{margin-top:16px;font-size:12px;color:var(--muted);max-width:640px;margin-left:auto;margin-right:auto}
+  @media(max-width:760px){.whynot{grid-template-columns:1fr}}
+
   footer{padding:52px 24px 68px;text-align:center;color:var(--muted);border-top:1px solid var(--line);font-size:14px;font-weight:300}
   footer a{color:var(--muted2);margin:0 10px}
 
@@ -392,6 +400,29 @@ in a tap — by email, PDF, or link.</p>
   <div class="wrap">
     <h2>Go further with Pro</h2>
     <p>Multiple sets for separate lives — properties, projects, grandparents — each with its own photos and its own send. Plus videos, a growing grid, and expiring iCloud links with view counts.</p>
+  </div>
+</section>
+
+<!-- WHY NOT -->
+<section class="gallery" style="padding-top:24px">
+  <div class="wrap">
+    <h2>Why not just use…?</h2>
+    <p>Fair question. Here's the honest difference.</p>
+    <div class="whynot">
+      <div class="card">
+        <h3>WeTransfer or Dropbox Transfer</h3>
+        <p>Built for one-off file dumps: every send starts from zero, and no list remembers your people. PhotoSendr keeps your recipients, subject, and message ready — and when you stop sharing a link, the copies are deleted, not just hidden.</p>
+      </div>
+      <div class="card">
+        <h3>Google Photos or iCloud albums</h3>
+        <p>Shared-album links stay up until you remember to turn them off, and everyone gets nudged toward an account. PhotoSendr links expire on their own, show you view counts, and nobody needs an account on either end.</p>
+      </div>
+      <div class="card">
+        <h3>Photographer gallery sites</h3>
+        <p>Pixieset, Pic-Time and friends are lovely — and start around $10 a month, built for client proofing. PhotoSendr Pro is $14.99 a year, or $34.99 once, for the part most of us actually need: photos to your people.</p>
+      </div>
+    </div>
+    <p class="finedis">Comparisons reflect our understanding of these products' free or typical plans as of August 2026. They're all fine tools — and any of them can change at any time, so check their sites for current details.</p>
   </div>
 </section>
 
