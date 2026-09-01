@@ -35,7 +35,7 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 28 August 2026</p>
+  <p class="muted">Last updated: 1 September 2026</p>
 
   <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
 
@@ -51,7 +51,7 @@
     <li><strong>Your sets</strong> — the photos and videos you add to your sets are kept in the app's private storage on your device so they're still there when you come back. Deleting an item or a set in the app removes it.</li>
     <li><strong>Your defaults</strong> — the recipient list, email subject, and message you save in Settings live on your device only.</li>
     <li><strong>Saved edits</strong> — when you tap Save, the edited photo is written back to your own photo library.</li>
-    <li><strong>Your share links</strong> — the list of links you've created (address, title, expiry) is stored on your device so you can track and revoke them.</li>
+    <li><strong>Your share links</strong> — the list of links you've created is stored on your device so you can keep track of them and expire them: the address, the title, the expiry date, how many items went in it, which set it came from, and a few small thumbnails so the list can show you what you sent.</li>
   </ul>
   <p>The developer has no access to any of this.</p>
 
@@ -59,10 +59,10 @@
   <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send.</p>
 
   <h2>iCloud share links (Pro)</h2>
-  <p>When you create a share link, the photos and videos in the current set are uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
+  <p>When you create a share link, what you're sharing is uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address: the photos and videos in the current set, or the PDF when you're sending one, plus a small cover image the app makes from the first item so the link shows a picture when you paste it somewhere. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
   <ul>
     <li><strong>You stay in control.</strong> Links expire automatically after 7 days, and you can stop sharing any link earlier from Settings → Shared Links; that deletes the uploaded copies.</li>
-    <li><strong>What's uploaded</strong> is exactly what you chose to share: the media, a title, and the expiry date. No names, emails, or identifiers travel with it.</li>
+    <li><strong>What's uploaded</strong> is exactly what you chose to share: the media or the PDF, the cover image for the link preview, a title, and the expiry date. No names, emails, or identifiers travel with it.</li>
     <li><strong>View counts.</strong> To show you how many times a link was opened, the viewer page pings a small counter service that stores <em>only</em> a random link ID and a number — no IP addresses, no location, no cookies, nothing about the viewer or about you.</li>
     <li><strong>Downloads.</strong> The viewer's download buttons fetch files directly from Apple's iCloud. When a browser blocks that direct fetch, the bytes pass through a small relay we run on Cloudflare; it streams the file and stores nothing — no copies, no content logs.</li>
     <li><strong>Reporting.</strong> Every shared page carries a "Report this share" link that opens an email to us containing the link's address, so we can delete a reported share from iCloud. We receive only what the reporter chooses to send.</li>
@@ -70,7 +70,8 @@
 
   <h2>Device permissions and why</h2>
   <ul>
-    <li><strong>Camera</strong> — only to take photos inside the app, only when you choose the camera mode.</li>
+    <li><strong>Camera</strong> — to take photos and, with Pro, record videos inside the app, only when you choose the camera.</li>
+    <li><strong>Microphone</strong> — only while you're recording a video with the in-app camera, to capture its sound. Nothing is recorded in the background.</li>
     <li><strong>Photo library picking</strong> — uses Apple's system picker, which runs outside the app and needs no permission: the app receives only the photos and videos you pick.</li>
     <li><strong>Photo library (add)</strong> — only to save edited photos back when you tap Save.</li>
     <li><strong>iCloud</strong> — used only when you create a share link, to upload that share to the app's public database.</li>
