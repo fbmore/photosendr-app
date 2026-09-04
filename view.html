@@ -32,15 +32,24 @@
   .grid img{width:100%;display:block}
   .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
     display:flex;flex-direction:column;align-self:start}
-  .grid .pdfcard{border-radius:14px;border:1px solid var(--line);background:var(--surface);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-    min-height:180px;text-decoration:none;color:inherit;padding:20px}
-  .grid .pdfcard .pdficon{font-size:40px;line-height:1}
-  .grid .pdfcard .pdfname{font-weight:600;font-size:15px}
-  .grid .pdfcard .pdfhint{font-size:12.5px;color:var(--muted)}
-  .pdfwrap{display:flex;flex-direction:column;gap:8px;align-self:start;outline:0;border-radius:14px}
-  .grid .pdfwrap .pdfcard{align-self:stretch}
-  .pdfwrap:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .grid .pdfwrap{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
+    display:flex;flex-direction:column;align-self:start}
+  .grid .pdfwrap .tile{border:0;border-radius:0}
+  .pdfthumb{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:rgba(255,255,255,.04)}
+  .pdfthumb img{width:100%;height:100%;object-fit:contain;display:block}
+  .pdfthumb .pdficon{font-size:44px;line-height:1}
+  .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center}
+  .pdfrow{display:flex;border-top:1px solid var(--line)}
+  .pdfrow .vdl{flex:1;border-top:0}
+  .pdfrow .vdl + .vdl{border-left:1px solid var(--line)}
+  .pdfurl{margin:8px 10px 10px;width:calc(100% - 20px)}
+  .notice{display:flex;align-items:flex-start;gap:12px;margin:0 0 22px;padding:12px 14px;border-radius:12px;
+    border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.45}
+  .notice[hidden]{display:none}
+  .notice p{margin:0;flex:1}
+  .notice .nclose{background:none;border:0;color:var(--muted);font:inherit;font-size:20px;line-height:1;
+    cursor:pointer;padding:0 2px;min-width:32px;min-height:32px}
+  .notice .nclose:focus-visible{outline:3px solid #fff;outline-offset:2px;border-radius:8px}
   .vdl{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--surface);
     color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer}
   .vdl[disabled]{opacity:.6;cursor:default}
@@ -64,7 +73,7 @@
   .dl.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
   .dl[disabled]{opacity:.6;cursor:default}
   .dl:focus-visible{outline:3px solid #fff;outline-offset:2px}
-  .lbbtn,.pdfcopy{background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;font-weight:600;
+  .lbbtn{background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;font-weight:600;
     font-size:14px;padding:9px 14px;border-radius:12px;cursor:pointer;min-height:44px;text-decoration:none;
     -webkit-appearance:none;appearance:none;line-height:1.3}
   .lbbtn{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;
@@ -74,8 +83,8 @@
   .dl .ico{width:16px;height:16px;display:inline-block;vertical-align:-3px;margin-right:7px}
   .ico.spin{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .lbbtn[disabled],.pdfcopy[disabled]{opacity:.6;cursor:default}
-  .lbbtn:focus-visible,.lbnav:focus-visible,.pdfcopy:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .lbbtn[disabled]{opacity:.6;cursor:default}
+  .lbbtn:focus-visible,.lbnav:focus-visible,.vdl:focus-visible{outline:3px solid #fff;outline-offset:-3px}
   .lburl,.pdfurl{font:inherit;font-size:13px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
     background:rgba(0,0,0,.6);color:var(--ink);width:100%;-webkit-user-select:text;user-select:text}
   footer{margin-top:48px;font-size:13px;color:var(--muted)}
@@ -96,6 +105,12 @@
   .lb.isvideo .lbvideo{bottom:calc(84px + env(safe-area-inset-bottom));height:auto}
   .lberr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     color:var(--muted);font-size:17px;padding:20px;text-align:center}
+  .lbdoc{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+    padding:calc(72px + env(safe-area-inset-top)) 12px calc(84px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;align-items:center;gap:14px;outline:0}
+  .lbdoc[hidden]{display:none}
+  .lbdoc canvas{background:#fff;border-radius:6px;max-width:100%;box-shadow:0 2px 14px rgba(0,0,0,.7)}
+  .lbdoc .lbmsg{color:var(--muted);font-size:17px;margin-top:30vh}
   .chrome{position:absolute;left:0;right:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;
     padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));
     transition:opacity .25s;z-index:2}
@@ -155,6 +170,7 @@
     <img id="lbA" class="lbimg" alt="" decoding="async">
     <img id="lbB" class="lbimg" alt="" decoding="async">
     <video id="lbVideo" class="lbvideo" controls playsinline preload="metadata" hidden></video>
+    <div id="lbDoc" class="lbdoc" hidden></div>
     <div id="lbErr" class="lberr" hidden></div>
   </div>
   <div class="chrome top">
@@ -190,7 +206,13 @@
   // Viewer strings, gathered here so the localization pass can swap them.
   var STR = {
     viewer:'Photo viewer', close:'Close', prev:'Previous', next:'Next',
-    photoOf:'Photo {n} of {total}', videoOf:'Video {n} of {total}',
+    photoOf:'Photo {n} of {total}', videoOf:'Video {n} of {total}', pdfOf:'PDF {n} of {total}, {pages} pages',
+    pageOf:'Page {n} of {total}', pdfLoading:'Loading PDF…', pdfError:'Couldn’t display this PDF — use Download to save it',
+    downloadPdf:'Download PDF', downloadAll:'Download all ({n})', downloadAllPhotos:'Download all photos ({n})',
+    nPhotos1:'1 photo', nPhotosN:'{n} photos', nPdf1:'1 PDF', nPdfN:'{n} PDFs', and:' and ',
+    zipHas:'The zip has {items}.', zipVideo1:'The video is too large to bundle — save it with the Download button under it.',
+    zipVideoN:'The {n} videos are too large to bundle — save each one with the Download button under it.',
+    dismiss:'Dismiss',
     play:'Play slideshow', pause:'Pause slideshow',
     fullscreen:'Enter fullscreen', exitFullscreen:'Exit fullscreen', download:'Download',
     interval:'Seconds per slide', loadError:'Couldn’t load this photo',
@@ -291,23 +313,26 @@
     var types = (f.itemTypes && f.itemTypes.value) || [];
     if(!items.length){ state('No photos in this share.'); return; }
 
-    var photoEntries = [], videoEntries = [], viewables = [];
+    var photoEntries = [], videoEntries = [], pdfEntries = [], viewables = [];
     var html = '<h1></h1><div class="meta"></div><div class="dlrow"></div><div class="grid">';
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
       var isVideo = type === 'video';
       var isPdf = type === 'pdf';
-      var name = isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+'.pdf'
+      var name = isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+(pdfEntries.length ? '-'+(pdfEntries.length+1) : '')+'.pdf'
                        : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
       if(isPdf){
-        html += '<div class="pdfwrap" id="item-'+i+'" tabindex="-1">'+
-                '<a class="pdfcard" href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
-                '<span class="pdficon">📄</span>'+
-                '<span class="pdfname"></span>'+
-                '<span class="pdfhint">Tap to open or download the PDF</span></a>'+
-                '<button type="button" class="pdfcopy" data-idx="'+i+'"></button>'+
+        // First page is rendered in as a thumbnail once pdf.js has loaded.
+        html += '<div class="pdfwrap" id="item-'+i+'">'+
+                '<button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="PDF '+(i+1)+'">'+
+                '<span class="pdfthumb"><span class="pdficon" aria-hidden="true">📄</span></span>'+
+                '<span class="pdfname"></span></button>'+
+                '<div class="pdfrow"><button class="vdl pdfdl" data-p="'+pdfEntries.length+'"></button>'+
+                '<button type="button" class="vdl pdfcopy" data-idx="'+i+'"></button></div>'+
                 '<input class="pdfurl" type="text" readonly hidden></div>';
+        pdfEntries.push({ url: url, name: name });
+        viewables.push({ url: url, type: 'pdf', name: name, index: i });
       } else if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
         // poster instead of leaving the tile black. The tile opens the
@@ -328,8 +353,14 @@
     html += '</div>';
     content.innerHTML = html;
     content.querySelector('h1').textContent = title;
-    Array.prototype.forEach.call(content.querySelectorAll('.pdfcard .pdfname'), function(el){
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfname'), function(el){
       el.textContent = title + ' (PDF)';
+    });
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfdl'), function(el){
+      el.textContent = STR.downloadPdf;
+      el.addEventListener('click', function(){
+        downloadOne(pdfEntries[parseInt(el.dataset.p, 10)], el, 'application/pdf', STR.downloadPdf);
+      });
     });
     Array.prototype.forEach.call(content.querySelectorAll('.pdfcopy'), function(el){
       el.textContent = STR.copyLink;
@@ -350,12 +381,25 @@
       sbtn.addEventListener('click', function(){ openAt(0, { play: true }); });
       dlrow.appendChild(sbtn);
     }
-    if(photoEntries.length){
+    // The zip takes photos and PDFs; videos are too large to bundle in RAM,
+    // so a notice points at their own Download buttons.
+    var zipEntries = photoEntries.concat(pdfEntries);
+    if(zipEntries.length){
       var btn = document.createElement('button');
       btn.className = hasShow ? 'dl ghost' : 'dl';
-      btn.textContent = 'Download all photos ('+photoEntries.length+')';
-      btn.addEventListener('click', function(){ downloadAll(photoEntries, title, btn); });
+      btn.textContent = pdfEntries.length ? t('downloadAll', { n: zipEntries.length })
+                                          : t('downloadAllPhotos', { n: zipEntries.length });
+      btn.addEventListener('click', function(){
+        if(videoEntries.length) showZipNotice(photoEntries.length, pdfEntries.length, videoEntries.length);
+        downloadAll(zipEntries, title, btn);
+      });
       dlrow.appendChild(btn);
+      var notice = document.createElement('div');
+      notice.className = 'notice'; notice.id = 'zipNotice'; notice.setAttribute('role', 'status'); notice.hidden = true;
+      notice.innerHTML = '<p></p><button type="button" class="nclose">×</button>';
+      notice.querySelector('.nclose').setAttribute('aria-label', STR.dismiss);
+      notice.querySelector('.nclose').addEventListener('click', function(){ notice.hidden = true; });
+      dlrow.parentNode.insertBefore(notice, dlrow.nextSibling);
     }
     Array.prototype.forEach.call(content.querySelectorAll('.vdl'), function(vbtn){
       vbtn.addEventListener('click', function(){
@@ -377,20 +421,89 @@
       viewables[parseInt(b.dataset.v, 10)].tile = b;
     });
     initLightbox();
+    if(pdfEntries.length) renderPdfThumbs();
 
     // Deep link: open straight on the requested item.
     if(deepIndex >= 1 && deepIndex <= items.length){
       var ri = deepIndex - 1, vi = -1;
       viewables.forEach(function(x, k){ if(x.index === ri) vi = k; });
-      if(vi >= 0){ openAt(vi, { deep: true }); }
-      else {
-        var card = document.getElementById('item-'+ri);
-        if(card){ card.scrollIntoView(); card.focus(); }
-      }
+      if(vi >= 0) openAt(vi, { deep: true });
     }
 
     // Count the view (anonymous: stores only link-id -> integer)
     if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
+  }
+
+  function showZipNotice(photos, pdfs, videos){
+    var el = document.getElementById('zipNotice');
+    if(!el) return;
+    var items = [];
+    if(photos) items.push(photos === 1 ? STR.nPhotos1 : t('nPhotosN', { n: photos }));
+    if(pdfs) items.push(pdfs === 1 ? STR.nPdf1 : t('nPdfN', { n: pdfs }));
+    el.querySelector('p').textContent = t('zipHas', { items: items.join(STR.and) }) + ' ' +
+      (videos === 1 ? STR.zipVideo1 : t('zipVideoN', { n: videos }));
+    el.hidden = false;
+  }
+
+  // ---- PDF rendering (pdf.js, loaded only when a share has a PDF) ----
+  // Bytes come through fetchAsset (direct, then proxy) because Apple's CDN
+  // sends no CORS headers for pdf.js to read them itself.
+  var PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  var PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var pdfLibPromise = null, pdfDocs = {};
+  function loadPdfLib(){
+    if(pdfLibPromise) return pdfLibPromise;
+    pdfLibPromise = new Promise(function(res, rej){
+      if(window.pdfjsLib){ res(window.pdfjsLib); return; }
+      var sc = document.createElement('script');
+      sc.src = PDFJS_URL; sc.async = true;
+      sc.onload = function(){
+        if(!window.pdfjsLib){ rej(new Error('pdfjs missing')); return; }
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        res(window.pdfjsLib);
+      };
+      sc.onerror = function(){ pdfLibPromise = null; rej(new Error('pdfjs failed to load')); };
+      document.head.appendChild(sc);
+    });
+    return pdfLibPromise;
+  }
+  function loadPdfDoc(url){
+    if(pdfDocs[url]) return pdfDocs[url];
+    pdfDocs[url] = Promise.all([loadPdfLib(), fetchAsset(url)]).then(function(r){
+      return r[0].getDocument({ data: r[1] }).promise;
+    });
+    pdfDocs[url].catch(function(){ delete pdfDocs[url]; });
+    return pdfDocs[url];
+  }
+  function renderPdfPage(doc, pageNum, cssWidth, canvas){
+    if(canvas._rendered) return Promise.resolve();
+    canvas._rendered = true;
+    return doc.getPage(pageNum).then(function(page){
+      var base = page.getViewport({ scale: 1 });
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var vp = page.getViewport({ scale: (cssWidth / base.width) * dpr });
+      canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+      canvas.style.width = cssWidth + 'px';
+      canvas.style.height = Math.floor(vp.height / dpr) + 'px';
+      return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    });
+  }
+  // Grid: swap each PDF tile's icon for its first page, one at a time.
+  function renderPdfThumbs(){
+    var pdfs = S.viewables.filter(function(v){ return v.type === 'pdf'; });
+    (function next(i){
+      if(i >= pdfs.length) return;
+      var v = pdfs[i], holder = v.tile && v.tile.querySelector('.pdfthumb');
+      if(!holder){ next(i + 1); return; }
+      loadPdfDoc(v.url).then(function(doc){
+        var c = document.createElement('canvas');
+        return renderPdfPage(doc, 1, Math.min(holder.clientWidth || 400, 600), c).then(function(){
+          var im = document.createElement('img');
+          im.alt = ''; im.src = c.toDataURL('image/jpeg', 0.85);
+          holder.innerHTML = ''; holder.appendChild(im);
+        });
+      }).catch(function(){}).then(function(){ next(i + 1); });
+    })(0);
   }
 
   // ---- Viewer -------------------------------------------------------------
@@ -398,6 +511,7 @@
   var lb = document.getElementById('lb'), lbStage = document.getElementById('lbStage'),
       lbA = document.getElementById('lbA'), lbB = document.getElementById('lbB'),
       lbVideo = document.getElementById('lbVideo'), lbErr = document.getElementById('lbErr'),
+      lbDoc = document.getElementById('lbDoc'),
       lbCount = document.getElementById('lbCount'), lbDl = document.getElementById('lbDl'),
       lbCopy = document.getElementById('lbCopy'), lbFs = document.getElementById('lbFs'),
       lbClose = document.getElementById('lbClose'), lbUrl = document.getElementById('lbUrl'),
@@ -407,7 +521,8 @@
       lbLive = document.getElementById('lbLive'), wrap = document.querySelector('.wrap');
   var S = { viewables: [], cur: -1, open: false, playing: false, timer: null, idleTimer: null, videoTimer: null,
             token: 0, layer: 0, wakeLock: null, resumeOnVisible: false, fromHistory: false, pushed: false,
-            deep: false, interval: 5, preloaded: {}, returnFocus: null, scrollY: 0, swiped: false, fsExitedAt: 0 };
+            deep: false, interval: 5, preloaded: {}, returnFocus: null, scrollY: 0, swiped: false, fsExitedAt: 0,
+            docObserver: null };
   var LS_KEY = 'photosendr.slideshowInterval';
   var FS_OK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 
@@ -444,7 +559,7 @@
       if(!el) return;
       e.preventDefault();
       if(el.classList.contains('tile')) openAt(parseInt(el.dataset.v, 10));
-      else copyLink(parseInt(el.dataset.idx, 10), el, el.nextElementSibling);
+      else copyLink(parseInt(el.dataset.idx, 10), el, el.closest('.pdfwrap').querySelector('.pdfurl'));
     });
     lbClose.addEventListener('click', closeLightbox);
     lbPrev.addEventListener('click', function(){ go(-1); });
@@ -497,6 +612,7 @@
     if(isFs()) exitFs();
     stopShow(true);
     unloadVideo();
+    unloadDoc();
     S.token++;
     lb.hidden = true;
     lb.classList.remove('idle');
@@ -516,6 +632,12 @@
     var it = S.viewables[S.cur];
     var target = (it && it.tile) || S.returnFocus;
     if(target && target.focus) target.focus();
+  }
+
+  function unloadDoc(){
+    if(S.docObserver){ S.docObserver.disconnect(); S.docObserver = null; }
+    lbDoc.innerHTML = '';
+    lbDoc.hidden = true;
   }
 
   function unloadVideo(){
@@ -545,9 +667,62 @@
     lbErr.hidden = true;
     lbUrl.hidden = true;
     lbCount.textContent = (i + 1) + ' / ' + n;
-    announce(t(it.type === 'video' ? 'videoOf' : 'photoOf', { n: i + 1, total: n }));
-    setBtn(lbCopy, t('copyLinkTo', { kind: it.type }), 'link');
+    if(it.type !== 'pdf') announce(t(it.type === 'video' ? 'videoOf' : 'photoOf', { n: i + 1, total: n }));
+    setBtn(lbCopy, t('copyLinkTo', { kind: it.type === 'pdf' ? 'PDF' : it.type }), 'link');
     unloadVideo();
+    unloadDoc();
+    if(it.type === 'pdf'){
+      lbA.classList.remove('on'); lbB.classList.remove('on');
+      lb.classList.remove('isvideo');
+      lbProg.hidden = !S.playing;
+      lbDoc.hidden = false;
+      lbDoc.scrollTop = 0;
+      lbDoc.innerHTML = '<div class="lbmsg"></div>';
+      lbDoc.firstChild.textContent = STR.pdfLoading;
+      var docLoaded = false;
+      loadPdfDoc(it.url).then(function(doc){
+        if(tok !== S.token) return;
+        docLoaded = true;
+        var pages = doc.numPages;
+        var width = Math.min(lbDoc.clientWidth - 24, 900);
+        announce(t('pdfOf', { n: i + 1, total: n, pages: pages }));
+        lbDoc.innerHTML = '';
+        var canvases = [];
+        for(var p = 1; p <= pages; p++){
+          var c = document.createElement('canvas');
+          c.setAttribute('role', 'img');
+          c.setAttribute('aria-label', t('pageOf', { n: p, total: pages }));
+          c.dataset.p = p;
+          c.style.width = width + 'px'; c.style.height = Math.round(width * 1.3) + 'px';
+          lbDoc.appendChild(c); canvases.push(c);
+        }
+        // Pages render as they scroll into view.
+        if('IntersectionObserver' in window){
+          S.docObserver = new IntersectionObserver(function(entries){
+            entries.forEach(function(en){
+              if(!en.isIntersecting) return;
+              S.docObserver.unobserve(en.target);
+              renderPdfPage(doc, parseInt(en.target.dataset.p, 10), width, en.target).catch(function(){});
+            });
+          }, { root: lbDoc, rootMargin: '800px 0px' });
+          canvases.forEach(function(c){ S.docObserver.observe(c); });
+        } else {
+          canvases.slice(0, 12).forEach(function(c){ renderPdfPage(doc, parseInt(c.dataset.p, 10), width, c).catch(function(){}); });
+        }
+        return renderPdfPage(doc, 1, width, canvases[0]).then(function(){
+          if(tok === S.token && S.playing) scheduleNext();
+        });
+      }).catch(function(){
+        if(tok !== S.token) return;
+        docLoaded = true;
+        lbDoc.innerHTML = '';
+        lbErr.textContent = STR.pdfError; lbErr.hidden = false;
+        announce(STR.pdfError);
+        if(S.playing) scheduleNext();
+      });
+      setTimeout(function(){ if(tok === S.token && !docLoaded && S.playing) scheduleNext(); }, 8000);
+      return;
+    }
     if(it.type === 'video'){
       lbA.classList.remove('on'); lbB.classList.remove('on');
       lb.classList.add('isvideo');
@@ -698,6 +873,12 @@
     kickIdle();
     if(inField) return;
     if(inVideo && (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
+    if(!lbDoc.hidden && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'PageUp' || e.key === 'PageDown')){
+      e.preventDefault();
+      var step = (e.key === 'ArrowUp' || e.key === 'ArrowDown') ? 80 : Math.round(lbDoc.clientHeight * 0.85);
+      lbDoc.scrollTop += (e.key === 'ArrowUp' || e.key === 'PageUp') ? -step : step;
+      return;
+    }
     switch(e.key){
       case 'ArrowRight': e.preventDefault(); go(1); break;
       case 'ArrowLeft':  e.preventDefault(); go(-1); break;
@@ -804,7 +985,7 @@
   function downloadCurrent(){
     var it = S.viewables[S.cur];
     if(!it) return;
-    downloadOne(it, lbDl, it.type === 'video' ? 'video/mp4' : 'image/jpeg', STR.download);
+    downloadOne(it, lbDl, it.type === 'video' ? 'video/mp4' : (it.type === 'pdf' ? 'application/pdf' : 'image/jpeg'), STR.download);
   }
 
   function copyLink(recordIndex, btn, fallbackInput){
@@ -957,11 +1138,33 @@
     });
   }
 
+  // A tiny valid two-page PDF, built by hand (xref included).
+  function demoPdfDataUrl(){
+    var objs = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 7 0 R >> >> >>',
+      null, // stream 1
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 7 0 R >> >> >>',
+      null, // stream 2
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>'
+    ];
+    function stream(txt){ var c = 'BT /F1 40 Tf 60 700 Td (' + txt + ') Tj ET'; return '<< /Length ' + c.length + ' >>\nstream\n' + c + '\nendstream'; }
+    objs[3] = stream('Demo PDF - page 1'); objs[5] = stream('Demo PDF - page 2');
+    var out = '%PDF-1.4\n', offsets = [];
+    objs.forEach(function(o, k){ offsets.push(out.length); out += (k + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+    var xref = out.length;
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n';
+    offsets.forEach(function(o){ out += ('0000000000' + o).slice(-10) + ' 00000 n \n'; });
+    out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+    return 'data:application/pdf;base64,' + btoa(out);
+  }
+
   // ?demo — offline stand-in record (the CloudKit tokens are origin-locked,
   // so localhost can never look a real share up).
   function renderDemo(){
     var items = [], types = [];
-    items.push({ downloadURL: 'terms.html' }); types.push('pdf');
+    items.push({ downloadURL: demoPdfDataUrl() }); types.push('pdf');
     ['#2b6acc','#c0392b','#27ae60','#8e44ad','#e67e22','#16a085'].forEach(function(c, i){
       var cv = document.createElement('canvas');
       cv.width = 1600; cv.height = i % 2 ? 1000 : 1200;
