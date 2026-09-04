@@ -26,6 +26,12 @@
   h1{font-size:26px;font-weight:600;margin:0 0 4px}
   .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
   .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .from{display:flex;align-items:flex-start;gap:12px;margin:-8px 0 24px;max-width:640px}
+  .from .avatar{flex:none;width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px;overflow:hidden}
+  .from .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .from .fromname{font-weight:600;font-size:15px;margin-top:2px}
+  .from .note{margin:2px 0 0;color:rgba(255,255,255,.85);font-size:15px;white-space:pre-line;overflow-wrap:anywhere}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
   .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);align-self:start}
   .grid img{width:100%;display:block}
@@ -172,6 +178,7 @@
     <span id="lbCount" class="lbcount" aria-hidden="true"></span>
     <button id="lbDl" class="lbbtn" type="button"></button>
     <button id="lbCopy" class="lbbtn" type="button"></button>
+    <button id="lbShare" class="lbbtn" type="button" hidden></button>
     <button id="lbFs" class="lbbtn" type="button" hidden aria-pressed="false"></button>
     <button id="lbClose" class="lbbtn" type="button"></button>
     <input id="lbUrl" class="lburl" type="text" readonly hidden>
@@ -214,7 +221,10 @@
     slideshowStarted:'Slideshow playing', slideshowPaused:'Slideshow paused',
     slideshowBtn:'Slideshow', downloading:'Downloading…', downloadFailed:'Couldn’t download — tap to retry',
     copyLink:'Copy link', copied:'Link copied', copyFailed:'Copy the link below', copyLinkTo:'Copy link to this {kind}',
-    linkField:'Link to this item', titleSuffix:' - shared via PhotoSendr'
+    linkField:'Link to this item', titleSuffix:' - shared via PhotoSendr',
+    from:'From {name}', saveToPhotos:'Save to Photos', saveToPhotosN:'Save to Photos ({n})',
+    shareItem:'Share…', sharePhotos:'Share photos…', shareReady:'Ready — tap again to save',
+    shareFailed:'Couldn’t share — use Download instead', preparingN:'Preparing… {done}/{total}'
   };
   function t(k, v){ return STR[k].replace(/\{(\w+)\}/g, function(_, n){ return v[n]; }); }
 
@@ -232,7 +242,8 @@
     compress: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
     clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
-    spinner: '<path d="M12 3a9 9 0 019 9"/>'
+    spinner: '<path d="M12 3a9 9 0 019 9"/>',
+    share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/>'
   };
   function icon(name, cls){
     return '<svg class="ico'+(cls ? ' '+cls : '')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '+
@@ -307,9 +318,15 @@
     var items = (f.items && f.items.value) || [];
     var types = (f.itemTypes && f.itemTypes.value) || [];
     if(!items.length){ state('No photos in this share.'); return; }
+    // Optional personal touch written by newer app builds: text only, capped.
+    var senderName = cleanText(f.senderName && f.senderName.value, 60);
+    var message = cleanText(f.message && f.message.value, 600);
+    var senderPhoto = (f.senderPhoto && f.senderPhoto.value && f.senderPhoto.value.downloadURL || '').replace('${f}', 'sender.jpg');
 
     var photoEntries = [], videoEntries = [], pdfEntries = [], viewables = [];
-    var html = '<h1></h1><div class="meta"></div><div class="dlrow"></div><div class="grid">';
+    var html = '<h1></h1><div class="meta"></div>' +
+               ((senderName || message) ? '<div class="from"><span class="avatar" aria-hidden="true"></span><div><div class="fromname"></div><p class="note"></p></div></div>' : '') +
+               '<div class="dlrow"></div><div class="grid">';
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
       var isVideo = type === 'video';
@@ -347,6 +364,17 @@
     content.innerHTML = html;
     document.title = title + STR.titleSuffix;
     content.querySelector('h1').textContent = title;
+    var fromRow = content.querySelector('.from');
+    if(fromRow){
+      var av = fromRow.querySelector('.avatar');
+      if(senderPhoto){ var ai = document.createElement('img'); ai.alt = ''; ai.src = senderPhoto; av.appendChild(ai); }
+      else if(senderName){ av.textContent = senderName.charAt(0).toUpperCase(); }
+      else { av.hidden = true; }
+      var fn = fromRow.querySelector('.fromname');
+      if(senderName) fn.textContent = t('from', { name: senderName }); else fn.hidden = true;
+      var nt = fromRow.querySelector('.note');
+      if(message) nt.textContent = message; else nt.hidden = true;
+    }
     Array.prototype.forEach.call(content.querySelectorAll('.pdfname'), function(el){
       el.textContent = title + ' (PDF)';
     });
@@ -381,6 +409,16 @@
         downloadAll(zipEntries, title, btn);
       });
       dlrow.appendChild(btn);
+      // Native share sheet with the files themselves: "Save Images" on iPhone,
+      // AirDrop/Mail elsewhere. Photos only — videos go one at a time.
+      if(CAN_SHARE_FILES && photoEntries.length){
+        var sh = document.createElement('button');
+        sh.className = 'dl ghost';
+        var shLabel = IS_IOS ? t('saveToPhotosN', { n: photoEntries.length }) : STR.sharePhotos;
+        sh.textContent = shLabel;
+        sh.addEventListener('click', function(){ shareEntries(photoEntries, sh, shLabel, 'image/jpeg', title); });
+        dlrow.insertBefore(sh, IS_IOS ? btn : null);
+      }
       var notice = document.createElement('div');
       notice.className = 'notice'; notice.id = 'zipNotice'; notice.setAttribute('role', 'status'); notice.hidden = true;
       notice.innerHTML = '<p></p><button type="button" class="nclose">×</button>';
@@ -420,6 +458,57 @@
     // Count the view (anonymous: stores only link-id -> integer)
     if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
   }
+
+  function cleanText(v, max){
+    if(typeof v !== 'string') return '';
+    v = v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+    return v.length > max ? v.slice(0, max - 1) + '…' : v;
+  }
+
+  // ---- Web Share with files (Save to Photos on iPhone) ----
+  var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var CAN_SHARE_FILES = (function(){
+    try {
+      return !!(navigator.share && navigator.canShare &&
+                navigator.canShare({ files: [new File([new Blob(['x'])], 'x.jpg', { type: 'image/jpeg' })] }));
+    } catch(e) { return false; }
+  })();
+  var fileCache = {};
+  function getFile(entry, mime){
+    if(fileCache[entry.url]) return Promise.resolve(fileCache[entry.url]);
+    return fetchAsset(entry.url).then(function(buf){
+      var fl = new File([buf], entry.name, { type: mime });
+      if(buf.byteLength < 40 * 1024 * 1024) fileCache[entry.url] = fl;   // keep photos, not big videos
+      return fl;
+    });
+  }
+  // The share sheet needs a user gesture; a slow fetch can outlive it, so on
+  // NotAllowedError the files stay ready and the next tap shares instantly.
+  function shareEntries(entries, btn, idleLabel, mime, title){
+    if(btn.disabled) return;
+    function idle(){ setBtn(btn, idleLabel, 'share'); }
+    function doShare(files){
+      return navigator.share({ files: files, title: title }).then(idle).catch(function(e){
+        var name = e && e.name;
+        if(name === 'AbortError'){ idle(); return; }
+        if(name === 'NotAllowedError'){ btn._ready = files; setBtn(btn, STR.shareReady, 'share'); announce(STR.shareReady); return; }
+        setBtn(btn, STR.shareFailed, 'alert'); announce(STR.shareFailed);
+      });
+    }
+    if(btn._ready){ var ready = btn._ready; btn._ready = null; doShare(ready); return; }
+    btn.disabled = true;
+    var done = 0;
+    function progress(){ setBtn(btn, t('preparingN', { done: done, total: entries.length }), 'spinner', 'spin'); }
+    progress();
+    Promise.all(entries.map(function(e){ return getFile(e, mime).then(function(fl){ done++; progress(); return fl; }); }))
+      .then(function(files){ btn.disabled = false; return doShare(files); })
+      .catch(function(){ btn.disabled = false; setBtn(btn, STR.shareFailed, 'alert'); announce(STR.shareFailed); });
+  }
+  function shareLabelFor(it){
+    return (IS_IOS && it.type !== 'pdf') ? STR.saveToPhotos : STR.shareItem;
+  }
+  function mimeFor(it){ return it.type === 'video' ? 'video/mp4' : (it.type === 'pdf' ? 'application/pdf' : 'image/jpeg'); }
 
   function showZipNotice(photos, pdfs, videos){
     var el = document.getElementById('zipNotice');
@@ -501,6 +590,7 @@
       lbDoc = document.getElementById('lbDoc'),
       lbCount = document.getElementById('lbCount'), lbDl = document.getElementById('lbDl'),
       lbCopy = document.getElementById('lbCopy'), lbFs = document.getElementById('lbFs'),
+      lbShare = document.getElementById('lbShare'),
       lbClose = document.getElementById('lbClose'), lbUrl = document.getElementById('lbUrl'),
       lbPrev = document.getElementById('lbPrev'), lbNext = document.getElementById('lbNext'),
       lbPlay = document.getElementById('lbPlay'), lbIntLbl = document.getElementById('lbIntLbl'),
@@ -527,6 +617,7 @@
     setBtn(lbNext, STR.next, 'next');
     setBtn(lbDl, STR.download, 'download');
     setBtn(lbCopy, STR.copyLink, 'link');
+    setBtn(lbShare, STR.shareItem, 'share'); lbShare.hidden = !CAN_SHARE_FILES;
     setBtn(lbFs, STR.fullscreen, 'expand'); lbFs.hidden = !FS_OK;
     setBtn(lbPlay, STR.play, 'play');
     lbIntLbl.textContent = STR.interval; lbInterval.setAttribute('aria-label', STR.interval);
@@ -553,6 +644,10 @@
     lbPlay.addEventListener('click', function(){ if(S.playing) stopShow(); else startShow(); });
     lbDl.addEventListener('click', downloadCurrent);
     lbCopy.addEventListener('click', function(){ copyLink(S.viewables[S.cur].index, lbCopy, lbUrl); });
+    lbShare.addEventListener('click', function(){
+      var it = S.viewables[S.cur];
+      shareEntries([it], lbShare, shareLabelFor(it), mimeFor(it), it.name);
+    });
     lbFs.addEventListener('click', toggleFs);
     lbInterval.addEventListener('change', function(){
       S.interval = parseInt(lbInterval.value, 10) || 5;
@@ -655,6 +750,7 @@
     lbCount.textContent = (i + 1) + ' / ' + n;
     if(it.type !== 'pdf') announce(t(it.type === 'video' ? 'videoOf' : 'photoOf', { n: i + 1, total: n }));
     setBtn(lbCopy, t('copyLinkTo', { kind: it.type === 'pdf' ? 'PDF' : it.type }), 'link');
+    lbShare._ready = null; lbShare.disabled = false; setBtn(lbShare, shareLabelFor(it), 'share');
     unloadVideo();
     unloadDoc();
     if(it.type === 'pdf'){
@@ -971,7 +1067,7 @@
   function downloadCurrent(){
     var it = S.viewables[S.cur];
     if(!it) return;
-    downloadOne(it, lbDl, it.type === 'video' ? 'video/mp4' : (it.type === 'pdf' ? 'application/pdf' : 'image/jpeg'), STR.download);
+    downloadOne(it, lbDl, mimeFor(it), STR.download);
   }
 
   function copyLink(recordIndex, btn, fallbackInput){
@@ -1162,7 +1258,13 @@
       items.push({ downloadURL: cv.toDataURL('image/jpeg', 0.8) }); types.push('photo');
     });
     items.push({ downloadURL: 'media/pitch-hero.mp4' }); types.push('video');
+    var av = document.createElement('canvas'); av.width = av.height = 256;
+    var ag = av.getContext('2d'); ag.fillStyle = '#e67e22'; ag.fillRect(0, 0, 256, 256);
+    ag.fillStyle = '#fff'; ag.font = 'bold 140px sans-serif'; ag.textAlign = 'center'; ag.textBaseline = 'middle'; ag.fillText('F', 128, 140);
     render({ fields: { title: { value: 'Demo share' }, expiresAt: { value: Date.now() + 5 * 86400000 },
+                       senderName: { value: 'Francesco' },
+                       message: { value: 'Photos from the weekend — the video is from the terrace.\nSave the ones you like!' },
+                       senderPhoto: { value: { downloadURL: av.toDataURL('image/jpeg', 0.8) } },
                        items: { value: items }, itemTypes: { value: types } } });
   }
 
