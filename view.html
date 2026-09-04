@@ -39,10 +39,6 @@
   .pdfthumb img{width:100%;height:100%;object-fit:contain;display:block}
   .pdfthumb .pdficon{font-size:44px;line-height:1}
   .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center}
-  .pdfrow{display:flex;border-top:1px solid var(--line)}
-  .pdfrow .vdl{flex:1;border-top:0}
-  .pdfrow .vdl + .vdl{border-left:1px solid var(--line)}
-  .pdfurl{margin:8px 10px 10px;width:calc(100% - 20px)}
   .notice{display:flex;align-items:flex-start;gap:12px;margin:0 0 22px;padding:12px 14px;border-radius:12px;
     border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.45}
   .notice[hidden]{display:none}
@@ -85,7 +81,7 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .lbbtn[disabled]{opacity:.6;cursor:default}
   .lbbtn:focus-visible,.lbnav:focus-visible,.vdl:focus-visible{outline:3px solid #fff;outline-offset:-3px}
-  .lburl,.pdfurl{font:inherit;font-size:13px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
+  .lburl{font:inherit;font-size:13px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
     background:rgba(0,0,0,.6);color:var(--ink);width:100%;-webkit-user-select:text;user-select:text}
   footer{margin-top:48px;font-size:13px;color:var(--muted)}
   footer a{color:var(--muted)}
@@ -328,9 +324,7 @@
                 '<button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="PDF '+(i+1)+'">'+
                 '<span class="pdfthumb"><span class="pdficon" aria-hidden="true">📄</span></span>'+
                 '<span class="pdfname"></span></button>'+
-                '<div class="pdfrow"><button class="vdl pdfdl" data-p="'+pdfEntries.length+'"></button>'+
-                '<button type="button" class="vdl pdfcopy" data-idx="'+i+'"></button></div>'+
-                '<input class="pdfurl" type="text" readonly hidden></div>';
+                '<button class="vdl pdfdl" data-p="'+pdfEntries.length+'"></button></div>';
         pdfEntries.push({ url: url, name: name });
         viewables.push({ url: url, type: 'pdf', name: name, index: i });
       } else if(isVideo){
@@ -361,13 +355,6 @@
       el.addEventListener('click', function(){
         downloadOne(pdfEntries[parseInt(el.dataset.p, 10)], el, 'application/pdf', STR.downloadPdf);
       });
-    });
-    Array.prototype.forEach.call(content.querySelectorAll('.pdfcopy'), function(el){
-      el.textContent = STR.copyLink;
-      el.setAttribute('aria-label', t('copyLinkTo', { kind: 'PDF' }));
-    });
-    Array.prototype.forEach.call(content.querySelectorAll('.pdfurl'), function(el){
-      el.setAttribute('aria-label', STR.linkField);
     });
     // Actions row: Slideshow leads, Download all follows.
     var dlrow = content.querySelector('.dlrow');
@@ -555,11 +542,10 @@
     }
 
     content.addEventListener('click', function(e){
-      var el = e.target.closest ? e.target.closest('.tile, .pdfcopy') : null;
+      var el = e.target.closest ? e.target.closest('.tile') : null;
       if(!el) return;
       e.preventDefault();
-      if(el.classList.contains('tile')) openAt(parseInt(el.dataset.v, 10));
-      else copyLink(parseInt(el.dataset.idx, 10), el, el.closest('.pdfwrap').querySelector('.pdfurl'));
+      openAt(parseInt(el.dataset.v, 10));
     });
     lbClose.addEventListener('click', closeLightbox);
     lbPrev.addEventListener('click', function(){ go(-1); });
