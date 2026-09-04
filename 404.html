@@ -22,7 +22,7 @@
   if(m){
     // ?p=N deep-links to one item; the viewer reads it as #<id>/N.
     var p = parseInt((location.search.match(/[?&]p=(\d+)/) || [])[1], 10);
-    document.getElementById('msg').textContent = 'Opening shared photos…';
+    document.getElementById('msg').textContent = 'Opening the share…';
     location.replace('/view.html#' + m[1] + (p >= 1 ? '/' + p : ''));
   }
 })();

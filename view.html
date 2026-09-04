@@ -8,8 +8,8 @@
 <!-- Static fallback for link previews. Per-share og (title + cover) is
      served by the /v/<id> worker route; this covers direct view.html links,
      whose #hash never reaches any server. -->
-<meta property="og:title" content="Shared photos — PhotoSendr">
-<meta property="og:description" content="Photos shared with PhotoSendr — the link expires on its own.">
+<meta property="og:title" content="Shared via PhotoSendr">
+<meta property="og:description" content="Photos, videos and files shared with PhotoSendr — the link expires on its own.">
 <meta property="og:image" content="https://photosendr.com/logo.png">
 <link rel="icon" type="image/png" href="logo.png">
 <style>
@@ -152,7 +152,7 @@
     </a>
   </header>
 
-  <div id="content"><div class="state">Loading photos…</div></div>
+  <div id="content"><div class="state">Loading photos, videos and files…</div></div>
 
   <footer>
     Shared with <a href="index.html">PhotoSendr</a> — photos to your list, in a tap.
@@ -288,12 +288,12 @@
           '\n\nReason: ');
   }
 
-  if(!recordName){ state('This link is missing its photo id.'); return; }
+  if(!recordName){ state('This link is missing its share id.'); return; }
   if(!ENVS.length && !DEMO){ state('Viewer not configured yet.'); return; }
 
   function lookup(i){
     if(i >= ENVS.length){
-      state('<b>This link has expired</b><br>or the photos are no longer shared.');
+      state('<b>This link has expired</b><br>or the share was taken down.');
       return;
     }
     var e = ENVS[i];
@@ -309,7 +309,7 @@
 
   function render(rec){
     var f = rec.fields || {};
-    var title = (f.title && f.title.value) || 'Shared photos';
+    var title = (f.title && f.title.value) || 'Shared with you';
     var expiresAt = f.expiresAt ? new Date(f.expiresAt.value) : null;
     if(expiresAt && expiresAt < new Date()){
       state('<b>This link has expired.</b>');
@@ -317,7 +317,7 @@
     }
     var items = (f.items && f.items.value) || [];
     var types = (f.itemTypes && f.itemTypes.value) || [];
-    if(!items.length){ state('No photos in this share.'); return; }
+    if(!items.length){ state('Nothing in this share yet.'); return; }
     // Optional personal touch written by newer app builds: text only, capped.
     var senderName = cleanText(f.senderName && f.senderName.value, 60);
     var message = cleanText(f.message && f.message.value, 600);
