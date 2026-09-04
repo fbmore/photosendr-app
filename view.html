@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Shared photos — PhotoSendr</title>
+<title>Shared via PhotoSendr</title>
 <meta name="robots" content="noindex">
 <!-- Static fallback for link previews. Per-share og (title + cover) is
      served by the /v/<id> worker route; this covers direct view.html links,
@@ -19,11 +19,10 @@
     font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px}
-  header{display:flex;align-items:center;margin-bottom:28px}
-  header .brand{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}
-  header img{width:40px;height:40px;border-radius:10px}
-  header .name{font-weight:600}
-  header .sub{font-size:13px;color:var(--muted)}
+  header{display:flex;align-items:center;margin-bottom:22px}
+  header .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+  header img{width:28px;height:28px;border-radius:7px}
+  header .name{font-weight:600;font-size:16px}
   h1{font-size:26px;font-weight:600;margin:0 0 4px}
   .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
   .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -143,7 +142,7 @@
   <header>
     <a class="brand" href="https://photosendr.com" aria-label="PhotoSendr home">
       <img src="logo.png" alt="">
-      <div><div class="name">PhotoSendr</div><div class="sub">Shared photos</div></div>
+      <span class="name">PhotoSendr</span>
     </a>
   </header>
 
@@ -215,7 +214,7 @@
     slideshowStarted:'Slideshow playing', slideshowPaused:'Slideshow paused',
     slideshowBtn:'Slideshow', downloading:'Downloading…', downloadFailed:'Couldn’t download — tap to retry',
     copyLink:'Copy link', copied:'Link copied', copyFailed:'Copy the link below', copyLinkTo:'Copy link to this {kind}',
-    linkField:'Link to this item'
+    linkField:'Link to this item', titleSuffix:' - shared via PhotoSendr'
   };
   function t(k, v){ return STR[k].replace(/\{(\w+)\}/g, function(_, n){ return v[n]; }); }
 
@@ -346,6 +345,7 @@
     });
     html += '</div>';
     content.innerHTML = html;
+    document.title = title + STR.titleSuffix;
     content.querySelector('h1').textContent = title;
     Array.prototype.forEach.call(content.querySelectorAll('.pdfname'), function(el){
       el.textContent = title + ' (PDF)';
