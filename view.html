@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Shared photos — PhotoSendr</title>
 <meta name="robots" content="noindex">
 <!-- Static fallback for link previews. Per-share og (title + cover) is
@@ -26,31 +26,105 @@
   header .sub{font-size:13px;color:var(--muted)}
   h1{font-size:26px;font-weight:600;margin:0 0 4px}
   .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
   .grid a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);align-self:start}
   .grid img{width:100%;display:block}
   .grid .vid{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
-    display:flex;flex-direction:column}
+    display:flex;flex-direction:column;align-self:start}
   .grid .pdfcard{border-radius:14px;border:1px solid var(--line);background:var(--surface);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
     min-height:180px;text-decoration:none;color:inherit;padding:20px}
   .grid .pdfcard .pdficon{font-size:40px;line-height:1}
   .grid .pdfcard .pdfname{font-weight:600;font-size:15px}
   .grid .pdfcard .pdfhint{font-size:12.5px;color:var(--muted)}
+  .pdfwrap{display:flex;flex-direction:column;gap:8px;align-self:start;outline:0;border-radius:14px}
+  .grid .pdfwrap .pdfcard{align-self:stretch}
+  .pdfwrap:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .vdl{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--surface);
     color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer}
   .vdl[disabled]{opacity:.6;cursor:default}
   .grid video{width:100%;display:block}
+  /* Tiles are buttons: they open the viewer, not a new tab. */
+  .tile{display:block;width:100%;padding:0;margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:var(--surface);cursor:pointer;font:inherit;color:inherit;position:relative;align-self:start;
+    -webkit-appearance:none;appearance:none;text-align:inherit}
+  .tile:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .tile img,.tile video{width:100%;display:block;pointer-events:none}
+  .tile .badge{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;
+    padding:4px 11px;font-size:13px;line-height:1.2}
+  .grid .vid .tile{border:0;border-radius:0}
   .state{padding:60px 0;text-align:center;color:var(--muted);font-size:17px}
   .state b{color:var(--ink)}
-  .dl{display:inline-block;margin:0 0 22px;background:#fff;color:#000;font-weight:600;font-size:14px;
-    padding:10px 18px;border-radius:12px;text-decoration:none;border:0;cursor:pointer;
-    font-family:inherit}
+  .dlrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+  .dlrow:empty{display:none}
+  .dl{display:inline-block;margin:0;background:#fff;color:#000;font-weight:600;font-size:14px;
+    padding:10px 18px;border-radius:12px;text-decoration:none;border:1px solid transparent;cursor:pointer;
+    font-family:inherit;min-height:44px}
+  .dl.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
   .dl[disabled]{opacity:.6;cursor:default}
+  .dl:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .lbbtn,.pdfcopy{background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;font-weight:600;
+    font-size:14px;padding:9px 14px;border-radius:12px;cursor:pointer;min-height:44px;text-decoration:none;
+    -webkit-appearance:none;appearance:none;line-height:1.3}
+  .lbbtn{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.45);border-color:rgba(255,255,255,.14)}
+  .ico{width:22px;height:22px;display:block}
+  .lbnav .ico{width:30px;height:30px}
+  .dl .ico{width:16px;height:16px;display:inline-block;vertical-align:-3px;margin-right:7px}
+  .ico.spin{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lbbtn[disabled],.pdfcopy[disabled]{opacity:.6;cursor:default}
+  .lbbtn:focus-visible,.lbnav:focus-visible,.pdfcopy:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .lburl,.pdfurl{font:inherit;font-size:13px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
+    background:rgba(0,0,0,.6);color:var(--ink);width:100%;-webkit-user-select:text;user-select:text}
   footer{margin-top:48px;font-size:13px;color:var(--muted)}
   footer a{color:var(--muted)}
   footer .fnote{margin-top:10px;font-size:12px;color:var(--muted)}
   footer .fnote a{text-decoration:underline}
+
+  /* ---- Viewer (lightbox + slideshow) ---- */
+  html.lb-open{overflow:hidden}
+  .lb{position:fixed;inset:0;height:100vh;height:100dvh;background:#000;z-index:1000;
+    overscroll-behavior:contain;outline:0;-webkit-user-select:none;user-select:none}
+  .lb[hidden]{display:none}
+  .lbstage{position:absolute;inset:0;touch-action:manipulation}
+  .lbimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;
+    transition:opacity var(--fade,0ms) ease}
+  .lbimg.on{opacity:1}
+  .lbvideo{position:absolute;inset:0;width:100%;height:100%;background:#000}
+  .lb.isvideo .lbvideo{bottom:calc(84px + env(safe-area-inset-bottom));height:auto}
+  .lberr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:17px;padding:20px;text-align:center}
+  .chrome{position:absolute;left:0;right:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;
+    padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));
+    transition:opacity .25s;z-index:2}
+  .chrome.top{top:0;padding-top:max(12px,env(safe-area-inset-top));
+    background:linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,0))}
+  .chrome.bottom{bottom:0;padding-bottom:max(12px,env(safe-area-inset-bottom));justify-content:center;
+    background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.7))}
+  .lbcount{margin-right:auto;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;padding-left:4px}
+  .lburl{flex-basis:100%}
+  .lbnav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;border:0;border-radius:16px;
+    background:rgba(0,0,0,.45);color:#fff;cursor:pointer;z-index:2;transition:opacity .25s;padding:0;
+    display:flex;align-items:center;justify-content:center}
+  .lbnav.prev{left:max(8px,env(safe-area-inset-left))}
+  .lbnav.next{right:max(8px,env(safe-area-inset-right))}
+  .lbint{display:flex;align-items:center;gap:6px;color:var(--muted)}
+  .lbint select{font:inherit;font-size:14px;font-weight:600;background:rgba(0,0,0,.45);color:var(--ink);
+    border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:0 8px;min-height:44px;cursor:pointer}
+  .lb.idle .chrome,.lb.idle .lbnav{opacity:0}
+  .lb.idle{cursor:none}
+  .lbprog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.15);z-index:3}
+  .lbprog i{display:block;height:100%;background:#fff;transform-origin:left;transform:scaleX(0)}
+  .lbprog.run i{animation:lbprog var(--interval,5s) linear forwards}
+  .lbprog[hidden]{display:none}
+  @keyframes lbprog{to{transform:scaleX(1)}}
+  @media (prefers-reduced-motion: reduce){
+    .lbimg,.chrome,.lbnav{transition:none}
+    .lbprog{display:none}
+    .ico.spin{animation:none}
+  }
 </style>
 </head>
 <body>
@@ -75,6 +149,34 @@
   </footer>
 </div>
 
+<!-- Viewer overlay: one photo/video at a time, slideshow, keyboard + touch. -->
+<div id="lb" class="lb" role="dialog" aria-modal="true" aria-label="" hidden tabindex="-1">
+  <div id="lbStage" class="lbstage">
+    <img id="lbA" class="lbimg" alt="" decoding="async">
+    <img id="lbB" class="lbimg" alt="" decoding="async">
+    <video id="lbVideo" class="lbvideo" controls playsinline preload="metadata" hidden></video>
+    <div id="lbErr" class="lberr" hidden></div>
+  </div>
+  <div class="chrome top">
+    <span id="lbCount" class="lbcount" aria-hidden="true"></span>
+    <button id="lbDl" class="lbbtn" type="button"></button>
+    <button id="lbCopy" class="lbbtn" type="button"></button>
+    <button id="lbFs" class="lbbtn" type="button" hidden aria-pressed="false"></button>
+    <button id="lbClose" class="lbbtn" type="button"></button>
+    <input id="lbUrl" class="lburl" type="text" readonly hidden>
+  </div>
+  <button id="lbPrev" class="lbnav prev" type="button"></button>
+  <button id="lbNext" class="lbnav next" type="button"></button>
+  <div class="chrome bottom">
+    <button id="lbPlay" class="lbbtn" type="button" aria-pressed="false"></button>
+    <label class="lbint" id="lbInt"><span id="lbIntLbl" class="vh"></span>
+      <select id="lbInterval"><option value="3">3 s</option><option value="5" selected>5 s</option><option value="10">10 s</option></select>
+    </label>
+  </div>
+  <div id="lbProg" class="lbprog" aria-hidden="true" hidden><i></i></div>
+</div>
+<div id="lbLive" class="vh" aria-live="polite" aria-atomic="true"></div>
+
 <script>
 (function(){
   // CloudKit Web Services REST — tried in order. Release builds write to
@@ -85,10 +187,66 @@
     { env: 'development', token: '4280390a9b9e3e0c65dfa221866d105ed6c249c84e7004cfc93080a1c3c0b783' }
   ].filter(function(e){ return e.token.indexOf('REPLACE') !== 0; });
 
+  // Viewer strings, gathered here so the localization pass can swap them.
+  var STR = {
+    viewer:'Photo viewer', close:'Close', prev:'Previous', next:'Next',
+    photoOf:'Photo {n} of {total}', videoOf:'Video {n} of {total}',
+    play:'Play slideshow', pause:'Pause slideshow',
+    fullscreen:'Enter fullscreen', exitFullscreen:'Exit fullscreen', download:'Download',
+    interval:'Seconds per slide', loadError:'Couldn’t load this photo',
+    slideshowStarted:'Slideshow playing', slideshowPaused:'Slideshow paused',
+    slideshowBtn:'Slideshow', downloading:'Downloading…', downloadFailed:'Couldn’t download — tap to retry',
+    copyLink:'Copy link', copied:'Link copied', copyFailed:'Copy the link below', copyLinkTo:'Copy link to this {kind}',
+    linkField:'Link to this item'
+  };
+  function t(k, v){ return STR[k].replace(/\{(\w+)\}/g, function(_, n){ return v[n]; }); }
+
+  // Minimal line icons (24-unit grid). Decorative: the button carries the label.
+  var ICONS = {
+    close: '<path d="M6 6l12 12M18 6L6 18"/>',
+    prev: '<path d="M15 5l-7 7 7 7"/>',
+    next: '<path d="M9 5l7 7-7 7"/>',
+    play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
+    pause: '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" stroke="none"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    link: '<path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66L12 7.3"/><path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66L12 16.7"/>',
+    check: '<path d="M5 12l5 5L20 7"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    compress: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
+    clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+    alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+    spinner: '<path d="M12 3a9 9 0 019 9"/>'
+  };
+  function icon(name, cls){
+    return '<svg class="ico'+(cls ? ' '+cls : '')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '+
+           'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+ICONS[name]+'</svg>';
+  }
+  // Icon buttons show a glyph and carry their words in aria-label + title;
+  // text buttons just show the words.
+  function setBtn(btn, text, iconName, cls){
+    if(btn.classList.contains('lbbtn') || btn.classList.contains('lbnav')){
+      btn.innerHTML = icon(iconName, cls);
+      btn.setAttribute('aria-label', text);
+      btn.title = text;
+    } else {
+      btn.textContent = text;
+    }
+  }
+
   var content = document.getElementById('content');
   function state(html){ content.innerHTML = '<div class="state">'+html+'</div>'; }
 
-  var recordName = (location.hash || '').replace(/^#/,'');
+  // #<recordName>[/<itemNumber>] — the optional 1-based item number deep-links
+  // to one photo/video/PDF (the /v/<id>?p=N form is rewritten to this).
+  var hashParts = (location.hash || '').replace(/^#/,'').split('/');
+  var recordName = hashParts[0];
+  var deepIndex = parseInt(hashParts[1], 10);
+  var DEMO = /[?&]demo(=|&|$)/.test(location.search);
+  if(DEMO && !recordName) recordName = 'demo';
+  function deepLink(recordIndex){ return 'https://photosendr.com/v/' + recordName + '?p=' + (recordIndex + 1); }
+
+  // A reload while the viewer was open leaves its history entry behind.
+  if(history.state && history.state.psLb){ try{ history.replaceState(null, '', location.href); }catch(e){} }
 
   // Pre-fill the report email with everything support needs to find and
   // delete the record.
@@ -103,7 +261,7 @@
   }
 
   if(!recordName){ state('This link is missing its photo id.'); return; }
-  if(!ENVS.length){ state('Viewer not configured yet.'); return; }
+  if(!ENVS.length && !DEMO){ state('Viewer not configured yet.'); return; }
 
   function lookup(i){
     if(i >= ENVS.length){
@@ -133,7 +291,7 @@
     var types = (f.itemTypes && f.itemTypes.value) || [];
     if(!items.length){ state('No photos in this share.'); return; }
 
-    var photoEntries = [], videoEntries = [];
+    var photoEntries = [], videoEntries = [], viewables = [];
     var html = '<h1></h1><div class="meta"></div><div class="dlrow"></div><div class="grid">';
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
@@ -143,20 +301,28 @@
                        : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
       if(isPdf){
-        html += '<a class="pdfcard" href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
-                '<span class="pdficon">\uD83D\uDCC4</span>'+
+        html += '<div class="pdfwrap" id="item-'+i+'" tabindex="-1">'+
+                '<a class="pdfcard" href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
+                '<span class="pdficon">📄</span>'+
                 '<span class="pdfname"></span>'+
-                '<span class="pdfhint">Tap to open or download the PDF</span></a>';
+                '<span class="pdfhint">Tap to open or download the PDF</span></a>'+
+                '<button type="button" class="pdfcopy" data-idx="'+i+'"></button>'+
+                '<input class="pdfurl" type="text" readonly hidden></div>';
       } else if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
-        // poster instead of leaving the tile black.
-        html += '<div class="vid"><video controls playsinline preload="metadata" src="'+url+'#t=0.001"></video>'+
+        // poster instead of leaving the tile black. The tile opens the
+        // viewer, where the video plays with native controls.
+        html += '<div class="vid"><button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="Video '+(i+1)+'">'+
+                '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true" src="'+url+'#t=0.001"></video>'+
+                '<span class="badge" aria-hidden="true">▶</span></button>'+
                 '<button class="vdl" data-i="'+videoEntries.length+'">Download video</button></div>';
         videoEntries.push({ url: url, name: name });
+        viewables.push({ url: url, type: 'video', name: name, index: i });
       } else {
         photoEntries.push({ url: url, name: name });
-        html += '<a href="'+url+'" download="'+name+'" target="_blank" rel="noopener">'+
-                '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></a>';
+        viewables.push({ url: url, type: 'photo', name: name, index: i });
+        html += '<button type="button" class="tile" data-v="'+(viewables.length-1)+'" aria-haspopup="dialog">'+
+                '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></button>';
       }
     });
     html += '</div>';
@@ -165,12 +331,31 @@
     Array.prototype.forEach.call(content.querySelectorAll('.pdfcard .pdfname'), function(el){
       el.textContent = title + ' (PDF)';
     });
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfcopy'), function(el){
+      el.textContent = STR.copyLink;
+      el.setAttribute('aria-label', t('copyLinkTo', { kind: 'PDF' }));
+    });
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfurl'), function(el){
+      el.setAttribute('aria-label', STR.linkField);
+    });
+    // Actions row: Slideshow leads, Download all follows.
+    var dlrow = content.querySelector('.dlrow');
+    var hasShow = viewables.length >= 2;
+    if(hasShow){
+      var sbtn = document.createElement('button');
+      sbtn.className = 'dl';
+      sbtn.innerHTML = icon('play') + '<span></span>';
+      sbtn.querySelector('span').textContent = STR.slideshowBtn;
+      sbtn.setAttribute('aria-label', STR.play);
+      sbtn.addEventListener('click', function(){ openAt(0, { play: true }); });
+      dlrow.appendChild(sbtn);
+    }
     if(photoEntries.length){
       var btn = document.createElement('button');
-      btn.className = 'dl';
+      btn.className = hasShow ? 'dl ghost' : 'dl';
       btn.textContent = 'Download all photos ('+photoEntries.length+')';
       btn.addEventListener('click', function(){ downloadAll(photoEntries, title, btn); });
-      content.querySelector('.dlrow').appendChild(btn);
+      dlrow.appendChild(btn);
     }
     Array.prototype.forEach.call(content.querySelectorAll('.vdl'), function(vbtn){
       vbtn.addEventListener('click', function(){
@@ -185,9 +370,464 @@
     if(photos) parts.push(photos+' photo'+(photos===1?'':'s'));
     if(vids) parts.push(vids+' video'+(vids===1?'':'s'));
     if(expiresAt) parts.push('link expires '+expiresAt.toLocaleDateString());
-    content.querySelector('.meta').textContent = parts.join(' \u00b7 ');
+    content.querySelector('.meta').textContent = parts.join(' · ');
+
+    S.viewables = viewables;
+    Array.prototype.forEach.call(content.querySelectorAll('.tile'), function(b){
+      viewables[parseInt(b.dataset.v, 10)].tile = b;
+    });
+    initLightbox();
+
+    // Deep link: open straight on the requested item.
+    if(deepIndex >= 1 && deepIndex <= items.length){
+      var ri = deepIndex - 1, vi = -1;
+      viewables.forEach(function(x, k){ if(x.index === ri) vi = k; });
+      if(vi >= 0){ openAt(vi, { deep: true }); }
+      else {
+        var card = document.getElementById('item-'+ri);
+        if(card){ card.scrollIntoView(); card.focus(); }
+      }
+    }
+
     // Count the view (anonymous: stores only link-id -> integer)
-    try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {}
+    if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
+  }
+
+  // ---- Viewer -------------------------------------------------------------
+
+  var lb = document.getElementById('lb'), lbStage = document.getElementById('lbStage'),
+      lbA = document.getElementById('lbA'), lbB = document.getElementById('lbB'),
+      lbVideo = document.getElementById('lbVideo'), lbErr = document.getElementById('lbErr'),
+      lbCount = document.getElementById('lbCount'), lbDl = document.getElementById('lbDl'),
+      lbCopy = document.getElementById('lbCopy'), lbFs = document.getElementById('lbFs'),
+      lbClose = document.getElementById('lbClose'), lbUrl = document.getElementById('lbUrl'),
+      lbPrev = document.getElementById('lbPrev'), lbNext = document.getElementById('lbNext'),
+      lbPlay = document.getElementById('lbPlay'), lbIntLbl = document.getElementById('lbIntLbl'),
+      lbInterval = document.getElementById('lbInterval'), lbProg = document.getElementById('lbProg'),
+      lbLive = document.getElementById('lbLive'), wrap = document.querySelector('.wrap');
+  var S = { viewables: [], cur: -1, open: false, playing: false, timer: null, idleTimer: null, videoTimer: null,
+            token: 0, layer: 0, wakeLock: null, resumeOnVisible: false, fromHistory: false, pushed: false,
+            deep: false, interval: 5, preloaded: {}, returnFocus: null, scrollY: 0, swiped: false, fsExitedAt: 0 };
+  var LS_KEY = 'photosendr.slideshowInterval';
+  var FS_OK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+
+  function announce(text){
+    lbLive.textContent = '';
+    setTimeout(function(){ lbLive.textContent = text; }, 30);
+  }
+
+  function initLightbox(){
+    var n = S.viewables.length;
+    if(!n) return;
+    lb.setAttribute('aria-label', STR.viewer);
+    setBtn(lbClose, STR.close, 'close');
+    setBtn(lbPrev, STR.prev, 'prev');
+    setBtn(lbNext, STR.next, 'next');
+    setBtn(lbDl, STR.download, 'download');
+    setBtn(lbCopy, STR.copyLink, 'link');
+    setBtn(lbFs, STR.fullscreen, 'expand'); lbFs.hidden = !FS_OK;
+    setBtn(lbPlay, STR.play, 'play');
+    lbIntLbl.textContent = STR.interval; lbInterval.setAttribute('aria-label', STR.interval);
+    lbInterval.insertAdjacentHTML('beforebegin', icon('clock'));
+    lbUrl.setAttribute('aria-label', STR.linkField);
+    try {
+      var saved = parseInt(localStorage.getItem(LS_KEY), 10);
+      if(saved === 3 || saved === 5 || saved === 10){ S.interval = saved; lbInterval.value = String(saved); }
+    } catch(e) {}
+    if(n < 2){
+      lbPrev.hidden = lbNext.hidden = lbPlay.hidden = true;
+      document.getElementById('lbInt').hidden = true;
+    }
+
+    content.addEventListener('click', function(e){
+      var el = e.target.closest ? e.target.closest('.tile, .pdfcopy') : null;
+      if(!el) return;
+      e.preventDefault();
+      if(el.classList.contains('tile')) openAt(parseInt(el.dataset.v, 10));
+      else copyLink(parseInt(el.dataset.idx, 10), el, el.nextElementSibling);
+    });
+    lbClose.addEventListener('click', closeLightbox);
+    lbPrev.addEventListener('click', function(){ go(-1); });
+    lbNext.addEventListener('click', function(){ go(1); });
+    lbPlay.addEventListener('click', function(){ if(S.playing) stopShow(); else startShow(); });
+    lbDl.addEventListener('click', downloadCurrent);
+    lbCopy.addEventListener('click', function(){ copyLink(S.viewables[S.cur].index, lbCopy, lbUrl); });
+    lbFs.addEventListener('click', toggleFs);
+    lbInterval.addEventListener('change', function(){
+      S.interval = parseInt(lbInterval.value, 10) || 5;
+      try { localStorage.setItem(LS_KEY, String(S.interval)); } catch(e) {}
+      if(S.playing && S.viewables[S.cur].type === 'photo') scheduleNext();
+    });
+    document.addEventListener('keydown', onKey);
+    lb.addEventListener('pointermove', kickIdle);
+    lbStage.addEventListener('touchstart', onTouchStart, { passive: true });
+    lbStage.addEventListener('touchend', onTouchEnd, { passive: true });
+    lbStage.addEventListener('click', onStageClick);
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('popstate', function(){
+      if(S.open){ S.fromHistory = true; closeLightbox(); }
+    });
+  }
+
+  function openAt(i, opts){
+    opts = opts || {};
+    if(S.open){ show(i); if(opts.play) startShow(); return; }
+    S.returnFocus = document.activeElement;
+    S.scrollY = window.pageYOffset || 0;
+    lb.hidden = false;
+    document.documentElement.classList.add('lb-open');
+    // Fixed body: the only scroll lock iOS Safari honours.
+    document.body.style.position = 'fixed';
+    document.body.style.top = (-S.scrollY) + 'px';
+    document.body.style.width = '100%';
+    if('inert' in wrap) wrap.inert = true; else wrap.setAttribute('aria-hidden', 'true');
+    S.open = true;
+    S.pushed = false;
+    S.deep = !!opts.deep;
+    if(!opts.deep){ try { history.pushState({ psLb: 1 }, '', location.href); S.pushed = true; } catch(e) {} }
+    show(i);
+    lb.focus();   // the dialog itself: Space/arrows work at once, Tab reaches the controls
+    if(opts.play) startShow();
+  }
+
+  function closeLightbox(){
+    if(!S.open) return;
+    if(isFs()) exitFs();
+    stopShow(true);
+    unloadVideo();
+    S.token++;
+    lb.hidden = true;
+    lb.classList.remove('idle');
+    lb.classList.remove('isvideo');
+    lbUrl.hidden = true;
+    document.documentElement.classList.remove('lb-open');
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, S.scrollY);
+    if('inert' in wrap) wrap.inert = false; else wrap.removeAttribute('aria-hidden');
+    S.open = false;
+    var pushed = S.pushed, fromHistory = S.fromHistory, deep = S.deep;
+    S.pushed = false; S.fromHistory = false; S.deep = false;
+    if(pushed && !fromHistory){ try { history.back(); } catch(e) {} }
+    if(deep){ try { history.replaceState(null, '', '#' + recordName); } catch(e) {} }
+    var it = S.viewables[S.cur];
+    var target = (it && it.tile) || S.returnFocus;
+    if(target && target.focus) target.focus();
+  }
+
+  function unloadVideo(){
+    lbVideo.onended = null;
+    lbVideo.onloadedmetadata = null;
+    if(!lbVideo.hidden){
+      lbVideo.pause();
+      lbVideo.removeAttribute('src');
+      lbVideo.load();
+      lbVideo.hidden = true;
+    }
+  }
+
+  function go(delta){
+    var n = S.viewables.length;
+    if(n < 2) return;
+    show((S.cur + delta + n) % n);
+  }
+
+  function show(i){
+    var n = S.viewables.length;
+    S.cur = i;
+    var tok = ++S.token;
+    var it = S.viewables[i];
+    clearTimeout(S.timer); clearTimeout(S.videoTimer);
+    lbProg.classList.remove('run');
+    lbErr.hidden = true;
+    lbUrl.hidden = true;
+    lbCount.textContent = (i + 1) + ' / ' + n;
+    announce(t(it.type === 'video' ? 'videoOf' : 'photoOf', { n: i + 1, total: n }));
+    setBtn(lbCopy, t('copyLinkTo', { kind: it.type }), 'link');
+    unloadVideo();
+    if(it.type === 'video'){
+      lbA.classList.remove('on'); lbB.classList.remove('on');
+      lb.classList.add('isvideo');
+      lbProg.hidden = true;
+      lbVideo.hidden = false;
+      lbVideo.muted = false;
+      lbVideo.src = it.url + '#t=0.001';
+      if(S.playing) playVideoForShow(tok);
+      return;
+    }
+    lb.classList.remove('isvideo');
+    lbProg.hidden = !S.playing;
+    var off = S.layer === 0 ? lbB : lbA;
+    var loaded = false;
+    off.onload = function(){
+      if(tok !== S.token) return;
+      loaded = true;
+      swapLayers(off);
+      if(S.playing) scheduleNext();
+    };
+    off.onerror = function(){
+      if(tok !== S.token) return;
+      loaded = true;
+      lbA.classList.remove('on'); lbB.classList.remove('on');
+      lbErr.textContent = STR.loadError; lbErr.hidden = false;
+      announce(STR.loadError);
+      if(S.playing) scheduleNext();
+    };
+    if(off.getAttribute('src') === it.url && off.complete && off.naturalWidth){ off.onload(); }
+    else { off.src = it.url; }
+    // A stalled download must never freeze a running slideshow.
+    setTimeout(function(){ if(tok === S.token && !loaded && S.playing) scheduleNext(); }, 8000);
+    preload(i + 1); preload(i - 1);
+  }
+
+  function swapLayers(el){
+    lbStage.style.setProperty('--fade', S.playing ? '400ms' : '0ms');
+    var old = el === lbA ? lbB : lbA;
+    el.classList.add('on');
+    old.classList.remove('on');
+    S.layer = el === lbA ? 0 : 1;
+  }
+
+  function preload(i){
+    var n = S.viewables.length;
+    if(!n) return;
+    var it = S.viewables[(i + n) % n];
+    if(it.type !== 'photo' || S.preloaded[it.url]) return;
+    var im = new Image();
+    im.src = it.url;
+    S.preloaded[it.url] = im;
+  }
+
+  // ---- Slideshow ----
+
+  function startShow(){
+    if(S.playing || S.viewables.length < 2) return;
+    S.playing = true;
+    lb.classList.add('playing');
+    setBtn(lbPlay, STR.pause, 'pause');
+    lbPlay.setAttribute('aria-pressed', 'true');
+    requestWakeLock();
+    kickIdle();
+    var it = S.viewables[S.cur];
+    if(it.type === 'video') playVideoForShow(S.token);
+    else scheduleNext();
+    announce(STR.slideshowStarted);
+  }
+
+  function stopShow(silent){
+    clearTimeout(S.timer); clearTimeout(S.videoTimer); clearTimeout(S.idleTimer);
+    S.timer = S.videoTimer = S.idleTimer = null;
+    var was = S.playing;
+    S.playing = false;
+    lb.classList.remove('playing');
+    lb.classList.remove('idle');
+    if(!lbVideo.hidden) lbVideo.pause();
+    lbProg.classList.remove('run');
+    lbProg.hidden = true;
+    releaseWakeLock();
+    setBtn(lbPlay, STR.play, 'play');
+    lbPlay.setAttribute('aria-pressed', 'false');
+    if(was && !silent) announce(STR.slideshowPaused);
+  }
+
+  function scheduleNext(ms){
+    clearTimeout(S.timer);
+    ms = ms || S.interval * 1000;
+    lbProg.hidden = false;
+    lbProg.classList.remove('run');
+    void lbProg.offsetWidth;
+    lbProg.style.setProperty('--interval', ms + 'ms');
+    lbProg.classList.add('run');
+    S.timer = setTimeout(function(){ go(1); }, ms);
+  }
+
+  // Autoplay policy: the timer breaks the user-gesture chain, so an unmuted
+  // play() may be refused. Retry muted; if even that fails, show the poster
+  // for one interval and move on.
+  function playVideoForShow(tok){
+    var v = lbVideo;
+    lbProg.hidden = true;
+    function armFallback(){
+      if(tok !== S.token) return;
+      clearTimeout(S.videoTimer);
+      var ms = (isFinite(v.duration) && v.duration > 0) ? (v.duration + 1) * 1000 : S.interval * 1000;
+      S.videoTimer = setTimeout(function(){ if(tok === S.token && S.playing) go(1); }, ms);
+    }
+    v.onended = function(){ if(tok === S.token && S.playing) go(1); };
+    v.onloadedmetadata = armFallback;
+    v.muted = false;
+    var p;
+    try { p = v.play(); } catch(e) { p = null; }
+    if(!p || !p.then){ armFallback(); return; }
+    p.catch(function(){ v.muted = true; return v.play(); })
+     .then(armFallback)
+     .catch(function(){ if(tok === S.token && S.playing) scheduleNext(); });
+  }
+
+  function kickIdle(){
+    lb.classList.remove('idle');
+    clearTimeout(S.idleTimer);
+    if(!S.playing) return;
+    S.idleTimer = setTimeout(function hide(){
+      if(!S.playing) return;
+      if(document.activeElement === lbInterval){ S.idleTimer = setTimeout(hide, 2000); return; }
+      lb.classList.add('idle');
+    }, 2000);
+  }
+
+  // ---- Input ----
+
+  function onKey(e){
+    if(!S.open || e.altKey || e.ctrlKey || e.metaKey) return;
+    var a = document.activeElement, tag = a ? a.tagName : '';
+    var inVideo = a === lbVideo;
+    var inField = tag === 'SELECT' || tag === 'INPUT';
+    var onControl = tag === 'BUTTON' || tag === 'A' || inField || inVideo;
+    if(e.key === 'Tab'){ kickIdle(); trapTab(e); return; }
+    if(e.key === 'Escape' || e.key === 'Esc'){
+      e.preventDefault();
+      if(isFs()){ exitFs(); return; }
+      if(Date.now() - S.fsExitedAt < 500) return;   // browser just left fullscreen on this Esc
+      if(!lbUrl.hidden){ lbUrl.hidden = true; lbCopy.focus(); return; }
+      closeLightbox();
+      return;
+    }
+    kickIdle();
+    if(inField) return;
+    if(inVideo && (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
+    switch(e.key){
+      case 'ArrowRight': e.preventDefault(); go(1); break;
+      case 'ArrowLeft':  e.preventDefault(); go(-1); break;
+      case 'Home': e.preventDefault(); if(S.viewables.length > 1) show(0); break;
+      case 'End':  e.preventDefault(); if(S.viewables.length > 1) show(S.viewables.length - 1); break;
+      case ' ':
+        if(onControl) return;              // a focused button keeps its own Space
+        e.preventDefault();
+        if(S.playing) stopShow(); else startShow();
+        break;
+      case 'f': case 'F':
+        if(!lbFs.hidden){ e.preventDefault(); toggleFs(); }
+        break;
+    }
+  }
+
+  function trapTab(e){
+    var els = Array.prototype.filter.call(
+      lb.querySelectorAll('button,a[href],select,input,video[controls]'),
+      function(el){ return !el.hidden && !el.disabled && el.offsetParent !== null; });
+    if(!els.length) return;
+    var first = els[0], last = els[els.length - 1], a = document.activeElement;
+    var inside = a && lb.contains(a) && a !== lb;
+    if(e.shiftKey){
+      if(!inside || a === first){ e.preventDefault(); last.focus(); }
+    } else {
+      if(!inside && a !== lb){ e.preventDefault(); first.focus(); }
+      else if(a === last){ e.preventDefault(); first.focus(); }
+    }
+  }
+
+  var tx = 0, ty = 0, tt = 0, tracking = false;
+  function onTouchStart(e){
+    S.swiped = false;
+    if(e.target === lbVideo){ tracking = false; return; }
+    var p = e.touches[0];
+    tx = p.clientX; ty = p.clientY; tt = Date.now(); tracking = true;
+  }
+  function onTouchEnd(e){
+    if(!tracking) return;
+    tracking = false;
+    var p = e.changedTouches[0];
+    var dx = p.clientX - tx, dy = p.clientY - ty, dt = Date.now() - tt;
+    if(Math.abs(dx) > 48 && Math.abs(dx) > 1.5 * Math.abs(dy) && dt < 600){
+      S.swiped = true;
+      go(dx < 0 ? 1 : -1);
+    }
+  }
+  function onStageClick(e){
+    if(S.swiped){ S.swiped = false; return; }
+    if(e.target === lbVideo || !S.playing) return;
+    if(lb.classList.contains('idle')) kickIdle();
+    else { clearTimeout(S.idleTimer); lb.classList.add('idle'); }
+  }
+
+  // ---- Fullscreen / wake lock / visibility ----
+
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function enterFs(){
+    var f = lb.requestFullscreen || lb.webkitRequestFullscreen;
+    if(!f) return;
+    try { var p = f.call(lb); if(p && p.catch) p.catch(function(){}); } catch(e) {}
+  }
+  function exitFs(){
+    var f = document.exitFullscreen || document.webkitExitFullscreen;
+    if(!f) return;
+    try { var p = f.call(document); if(p && p.catch) p.catch(function(){}); } catch(e) {}
+  }
+  function toggleFs(){ if(isFs()) exitFs(); else enterFs(); }
+  function onFsChange(){
+    var on = isFs();
+    if(!on) S.fsExitedAt = Date.now();
+    setBtn(lbFs, on ? STR.exitFullscreen : STR.fullscreen, on ? 'compress' : 'expand');
+    lbFs.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function requestWakeLock(){
+    if(!('wakeLock' in navigator) || !S.playing || document.hidden || S.wakeLock) return;
+    try {
+      navigator.wakeLock.request('screen').then(function(l){
+        S.wakeLock = l;
+        l.addEventListener('release', function(){ S.wakeLock = null; });
+      }).catch(function(){});
+    } catch(e) {}
+  }
+  function releaseWakeLock(){
+    if(!S.wakeLock) return;
+    try { S.wakeLock.release().catch(function(){}); } catch(e) {}
+    S.wakeLock = null;
+  }
+
+  function onVisibility(){
+    if(!S.open) return;
+    if(document.hidden){
+      if(S.playing){ S.resumeOnVisible = true; stopShow(true); }
+    } else if(S.resumeOnVisible){
+      S.resumeOnVisible = false;
+      startShow();
+    }
+  }
+
+  // ---- Per-item actions ----
+
+  function downloadCurrent(){
+    var it = S.viewables[S.cur];
+    if(!it) return;
+    downloadOne(it, lbDl, it.type === 'video' ? 'video/mp4' : 'image/jpeg', STR.download);
+  }
+
+  function copyLink(recordIndex, btn, fallbackInput){
+    var url = deepLink(recordIndex);
+    var idle = btn.getAttribute('aria-label') || STR.copyLink;
+    function ok(){
+      setBtn(btn, STR.copied, 'check');
+      announce(STR.copied);
+      clearTimeout(btn._copyTimer);
+      btn._copyTimer = setTimeout(function(){ setBtn(btn, idle, 'link'); }, 2000);
+    }
+    function fail(){
+      setBtn(btn, idle, 'link');
+      if(!fallbackInput) return;
+      fallbackInput.value = url;
+      fallbackInput.hidden = false;
+      fallbackInput.focus();
+      fallbackInput.select();
+      announce(STR.copyFailed);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(ok, fail);
+    } else fail();
   }
 
   // --- Download-all: fetch every photo (videos excluded) and pack them
@@ -268,28 +908,32 @@
     });
   }
 
-  // One video, saved as a file. The download attribute is ignored on
+  function saveBlob(blob, name){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
+  }
+
+  // One item, saved as a file. The download attribute is ignored on
   // cross-origin links, so fetch (direct, then proxy) into a blob first.
-  function downloadVideo(entry, btn){
+  function downloadOne(entry, btn, mime, idleLabel){
     if(!entry || btn.disabled) return;
     btn.disabled = true;
-    var orig = 'Download video';
-    btn.textContent = 'Downloading…';
+    setBtn(btn, STR.downloading, 'spinner', 'spin');
     fetchAsset(entry.url).then(function(buf){
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([buf], { type: 'video/mp4' }));
-      a.download = entry.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
-      btn.textContent = orig;
+      saveBlob(new Blob([buf], { type: mime }), entry.name);
+      setBtn(btn, idleLabel, 'download');
       btn.disabled = false;
     }).catch(function(){
-      btn.textContent = 'Couldn’t download — tap to retry';
+      setBtn(btn, STR.downloadFailed, 'alert');
       btn.disabled = false;
     });
   }
+  function downloadVideo(entry, btn){ downloadOne(entry, btn, 'video/mp4', 'Download video'); }
 
   function downloadAll(entries, title, btn){
     if(btn.disabled) return;
@@ -304,13 +948,7 @@
       });
     })).then(function(){
       var slug = title.replace(/[^\w\- ]/g, '').trim().replace(/\s+/g, '-').toLowerCase();
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(makeZip(files));
-      a.download = (slug || 'photosendr-photos') + '.zip';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
+      saveBlob(makeZip(files), (slug || 'photosendr-photos') + '.zip');
       btn.textContent = orig;
       btn.disabled = false;
     }).catch(function(){
@@ -319,7 +957,28 @@
     });
   }
 
-  lookup(0);
+  // ?demo — offline stand-in record (the CloudKit tokens are origin-locked,
+  // so localhost can never look a real share up).
+  function renderDemo(){
+    var items = [], types = [];
+    items.push({ downloadURL: 'terms.html' }); types.push('pdf');
+    ['#2b6acc','#c0392b','#27ae60','#8e44ad','#e67e22','#16a085'].forEach(function(c, i){
+      var cv = document.createElement('canvas');
+      cv.width = 1600; cv.height = i % 2 ? 1000 : 1200;
+      var g = cv.getContext('2d');
+      g.fillStyle = c; g.fillRect(0, 0, cv.width, cv.height);
+      g.fillStyle = '#fff'; g.font = 'bold 260px sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(String(i + 2), cv.width / 2, cv.height / 2);
+      items.push({ downloadURL: cv.toDataURL('image/jpeg', 0.8) }); types.push('photo');
+    });
+    items.push({ downloadURL: 'media/pitch-hero.mp4' }); types.push('video');
+    render({ fields: { title: { value: 'Demo share' }, expiresAt: { value: Date.now() + 5 * 86400000 },
+                       items: { value: items }, itemTypes: { value: types } } });
+  }
+
+  if(DEMO){ window.__psViewer = { S: S, startShow: startShow, stopShow: stopShow, show: show }; renderDemo(); }
+  else lookup(0);
 })();
 </script>
 </body>

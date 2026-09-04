@@ -20,8 +20,10 @@
 (function(){
   var m = location.pathname.match(/^\/v\/([A-Za-z0-9-]{10,100})$/);
   if(m){
+    // ?p=N deep-links to one item; the viewer reads it as #<id>/N.
+    var p = parseInt((location.search.match(/[?&]p=(\d+)/) || [])[1], 10);
     document.getElementById('msg').textContent = 'Opening shared photos…';
-    location.replace('/view.html#' + m[1]);
+    location.replace('/view.html#' + m[1] + (p >= 1 ? '/' + p : ''));
   }
 })();
 </script>
