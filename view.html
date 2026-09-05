@@ -43,6 +43,8 @@
   .pdfthumb{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:rgba(255,255,255,.04)}
   .pdfthumb img{width:100%;height:100%;object-fit:contain;display:block}
   .pdfthumb .pdficon{font-size:44px;line-height:1}
+  .filetile{cursor:default}
+  .fileext{display:block;margin-top:6px;font-size:13px;font-weight:700;letter-spacing:.06em;opacity:.75}
   .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center}
   .notice{display:flex;align-items:flex-start;gap:12px;margin:0 0 22px;padding:12px 14px;border-radius:12px;
     border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.45}
@@ -317,22 +319,32 @@
     }
     var items = (f.items && f.items.value) || [];
     var types = (f.itemTypes && f.itemTypes.value) || [];
+    // Real filenames for imported files (5.1+). Absent on every earlier
+    // share, which keeps deriving its names from the share title.
+    var names = (f.itemNames && f.itemNames.value) || [];
     if(!items.length){ state('Nothing in this share yet.'); return; }
     // Optional personal touch written by newer app builds: text only, capped.
     var senderName = cleanText(f.senderName && f.senderName.value, 60);
     var message = cleanText(f.message && f.message.value, 600);
     var senderPhoto = (f.senderPhoto && f.senderPhoto.value && f.senderPhoto.value.downloadURL || '').replace('${f}', 'sender.jpg');
 
-    var photoEntries = [], videoEntries = [], pdfEntries = [], viewables = [];
+    var photoEntries = [], videoEntries = [], pdfEntries = [], fileEntries = [], viewables = [];
     var html = '<h1></h1><div class="meta"></div>' +
                ((senderName || message) ? '<div class="from"><span class="avatar" aria-hidden="true"></span><div><div class="fromname"></div><p class="note"></p></div></div>' : '') +
                '<div class="dlrow"></div><div class="grid">';
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
+      // Anything this build doesn't recognise becomes a downloadable file
+      // rather than a broken <img>. Without this a type added by a later app
+      // version renders as a dead image on every page already deployed.
+      if(['photo','video','pdf','file'].indexOf(type) < 0) type = 'file';
       var isVideo = type === 'video';
       var isPdf = type === 'pdf';
-      var name = isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+(pdfEntries.length ? '-'+(pdfEntries.length+1) : '')+'.pdf'
-                       : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg');
+      var isFile = type === 'file';
+      var given = cleanName(names[i]);
+      var name = given || (isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+(pdfEntries.length ? '-'+(pdfEntries.length+1) : '')+'.pdf'
+                       : isFile ? 'file-'+(i+1)
+                       : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg'));
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
       if(isPdf){
         // First page is rendered in as a thumbnail once pdf.js has loaded.
@@ -343,6 +355,18 @@
                 '<button class="vdl pdfdl" data-p="'+pdfEntries.length+'"></button></div>';
         pdfEntries.push({ url: url, name: name });
         viewables.push({ url: url, type: 'pdf', name: name, index: i });
+      } else if(isFile){
+        // No preview to offer for an arbitrary document, so a file tile is
+        // deliberately NOT a viewable: a dead entry in the slideshow is worse
+        // than an absent one. Deep links degrade safely — ?p=N looks up by
+        // item index and simply finds nothing to open.
+        html += '<div class="pdfwrap" id="item-'+i+'">'+
+                '<span class="tile filetile">'+
+                '<span class="pdfthumb"><span class="pdficon" aria-hidden="true">📄</span>'+
+                '<span class="fileext" aria-hidden="true"></span></span>'+
+                '<span class="pdfname"></span></span>'+
+                '<button class="vdl pdfdl" data-f="'+fileEntries.length+'"></button></div>';
+        fileEntries.push({ url: url, name: name });
       } else if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
         // poster instead of leaving the tile black. The tile opens the
@@ -375,13 +399,26 @@
       var nt = fromRow.querySelector('.note');
       if(message) nt.textContent = message; else nt.hidden = true;
     }
-    Array.prototype.forEach.call(content.querySelectorAll('.pdfname'), function(el){
-      el.textContent = title + ' (PDF)';
-    });
-    Array.prototype.forEach.call(content.querySelectorAll('.pdfdl'), function(el){
-      el.textContent = STR.downloadPdf;
-      el.addEventListener('click', function(){
-        downloadOne(pdfEntries[parseInt(el.dataset.p, 10)], el, 'application/pdf', STR.downloadPdf);
+    Array.prototype.forEach.call(content.querySelectorAll('.pdfwrap'), function(wrap){
+      var dl = wrap.querySelector('.pdfdl');
+      var nameEl = wrap.querySelector('.pdfname');
+      var isFileTile = dl && dl.dataset.f !== undefined;
+      var entry = isFileTile ? fileEntries[parseInt(dl.dataset.f, 10)]
+                             : pdfEntries[parseInt(dl.dataset.p, 10)];
+      if(!entry) return;
+      // A 5.1 share carries the real filename; older ones fall back to the
+      // share title, exactly as they always did.
+      if(nameEl) nameEl.textContent = isFileTile ? entry.name : (entry.name || (title + ' (PDF)'));
+      var ext = wrap.querySelector('.fileext');
+      if(ext){
+        var m = /\.([A-Za-z0-9]{1,6})$/.exec(entry.name || '');
+        ext.textContent = m ? m[1].toUpperCase() : '';
+      }
+      dl.textContent = isFileTile ? (STR.downloadFile || 'Download') : STR.downloadPdf;
+      dl.addEventListener('click', function(){
+        downloadOne(entry, dl,
+                    isFileTile ? 'application/octet-stream' : 'application/pdf',
+                    dl.textContent);
       });
     });
     // Actions row: Slideshow leads, Download all follows.
@@ -398,11 +435,11 @@
     }
     // The zip takes photos and PDFs; videos are too large to bundle in RAM,
     // so a notice points at their own Download buttons.
-    var zipEntries = photoEntries.concat(pdfEntries);
+    var zipEntries = photoEntries.concat(pdfEntries).concat(fileEntries);
     if(zipEntries.length){
       var btn = document.createElement('button');
       btn.className = hasShow ? 'dl ghost' : 'dl';
-      btn.textContent = pdfEntries.length ? t('downloadAll', { n: zipEntries.length })
+      btn.textContent = (pdfEntries.length || fileEntries.length) ? t('downloadAll', { n: zipEntries.length })
                                           : t('downloadAllPhotos', { n: zipEntries.length });
       btn.addEventListener('click', function(){
         if(videoEntries.length) showZipNotice(photoEntries.length, pdfEntries.length, videoEntries.length);
@@ -457,6 +494,15 @@
 
     // Count the view (anonymous: stores only link-id -> integer)
     if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
+  }
+
+  function cleanName(v){
+    if(typeof v !== 'string') return '';
+    v = v.replace(/[\u0000-\u001F\u007F]/g, '')
+         .replace(/[\/\\:]+/g, '-')
+         .replace(/\s+/g, ' ')
+         .trim();
+    return v.slice(0, 120);
   }
 
   function cleanText(v, max){
