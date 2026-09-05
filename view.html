@@ -157,7 +157,7 @@
   <div id="content"><div class="state">Loading photos, videos and files…</div></div>
 
   <footer>
-    Shared with <a href="index.html">PhotoSendr</a> — photos to your favorite people, in a tap.
+    Shared with <a href="index.html">PhotoSendr</a> — photos, videos and files to your favorite people, in a tap.
     Links expire automatically.
     <div class="fnote">
       Files in this share were uploaded by the person who sent you this link and are
@@ -305,7 +305,13 @@
     }).then(function(r){ return r.json(); }).then(function(resp){
       var rec = resp.records && resp.records[0];
       if(!rec || rec.serverErrorCode || !rec.fields){ lookup(i+1); return; }
-      render(rec);
+      // Render separately: a bug in rendering is not a missing record, and
+      // must not be reported to the viewer as an expired link.
+      try { render(rec); }
+      catch(err){
+        console.error('render failed', err);
+        state('<b>Something went wrong displaying this share.</b><br>Please try again.');
+      }
     }).catch(function(){ lookup(i+1); });
   }
 
@@ -468,19 +474,26 @@
         downloadVideo(videoEntries[parseInt(vbtn.dataset.i, 10)], vbtn);
       });
     });
-    var photos = types.length ? types.filter(function(t){return t!=='video' && t!=='pdf';}).length : items.length;
+    var photos = types.length ? types.filter(function(t){return t==='photo';}).length : items.length;
     var vids = types.filter(function(t){return t==='video';}).length;
     var pdfs = types.filter(function(t){return t==='pdf';}).length;
+    var fls = types.filter(function(t){return t==='file';}).length;
     var parts = [];
     if(pdfs) parts.push(pdfs===1 ? '1 PDF' : pdfs+' PDFs');
     if(photos) parts.push(photos+' photo'+(photos===1?'':'s'));
     if(vids) parts.push(vids+' video'+(vids===1?'':'s'));
+    if(fls) parts.push(fls+' file'+(fls===1?'':'s'));
     if(expiresAt) parts.push('link expires '+expiresAt.toLocaleDateString());
     content.querySelector('.meta').textContent = parts.join(' · ');
 
     S.viewables = viewables;
     Array.prototype.forEach.call(content.querySelectorAll('.tile'), function(b){
-      viewables[parseInt(b.dataset.v, 10)].tile = b;
+      // File tiles look like tiles but open nothing, so they carry no data-v.
+      // Indexing viewables with NaN here used to throw, and the throw was
+      // swallowed by lookup()'s catch — which then reported a perfectly good
+      // share as expired.
+      var v = parseInt(b.dataset.v, 10);
+      if(!isNaN(v) && viewables[v]) viewables[v].tile = b;
     });
     initLightbox();
     if(pdfEntries.length) renderPdfThumbs();
@@ -1292,7 +1305,10 @@
   // so localhost can never look a real share up).
   function renderDemo(){
     var items = [], types = [];
-    items.push({ downloadURL: demoPdfDataUrl() }); types.push('pdf');
+    var demoNames = [];
+    items.push({ downloadURL: demoPdfDataUrl() }); types.push('pdf'); demoNames.push('Lease-2026.pdf');
+    // An imported non-previewable file, so the generic tile is exercised too.
+    items.push({ downloadURL: 'data:text/plain;base64,' + btoa('receipts') }); types.push('file'); demoNames.push('receipts.zip');
     ['#2b6acc','#c0392b','#27ae60','#8e44ad','#e67e22','#16a085'].forEach(function(c, i){
       var cv = document.createElement('canvas');
       cv.width = 1600; cv.height = i % 2 ? 1000 : 1200;
@@ -1301,9 +1317,9 @@
       g.fillStyle = '#fff'; g.font = 'bold 260px sans-serif';
       g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText(String(i + 2), cv.width / 2, cv.height / 2);
-      items.push({ downloadURL: cv.toDataURL('image/jpeg', 0.8) }); types.push('photo');
+      items.push({ downloadURL: cv.toDataURL('image/jpeg', 0.8) }); types.push('photo'); demoNames.push('');
     });
-    items.push({ downloadURL: 'media/pitch-hero.mp4' }); types.push('video');
+    items.push({ downloadURL: 'media/pitch-hero.mp4' }); types.push('video'); demoNames.push('');
     var av = document.createElement('canvas'); av.width = av.height = 256;
     var ag = av.getContext('2d'); ag.fillStyle = '#e67e22'; ag.fillRect(0, 0, 256, 256);
     ag.fillStyle = '#fff'; ag.font = 'bold 140px sans-serif'; ag.textAlign = 'center'; ag.textBaseline = 'middle'; ag.fillText('F', 128, 140);
@@ -1311,7 +1327,8 @@
                        senderName: { value: 'Francesco' },
                        message: { value: 'Photos from the weekend — the video is from the terrace.\nSave the ones you like!' },
                        senderPhoto: { value: { downloadURL: av.toDataURL('image/jpeg', 0.8) } },
-                       items: { value: items }, itemTypes: { value: types } } });
+                       items: { value: items }, itemTypes: { value: types },
+                       itemNames: { value: demoNames } } });
   }
 
   if(DEMO){ window.__psViewer = { S: S, startShow: startShow, stopShow: stopShow, show: show }; renderDemo(); }
