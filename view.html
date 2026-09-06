@@ -92,6 +92,12 @@
   .lbbtn:focus-visible,.lbnav:focus-visible,.vdl:focus-visible{outline:3px solid #fff;outline-offset:-3px}
   .lburl{font:inherit;font-size:13px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);
     background:rgba(0,0,0,.6);color:var(--ink);width:100%;-webkit-user-select:text;user-select:text}
+  /* ?demo&pitch: tighter top so the whole share fits one laptop screen */
+  html.pitch .wrap{padding:26px 20px 28px}
+  html.pitch header{margin-bottom:14px}
+  html.pitch .meta{margin-bottom:18px}
+  html.pitch .dlrow{margin-bottom:18px}
+  html.pitch footer{display:none}
   footer{margin-top:48px;font-size:13px;color:var(--muted)}
   footer a{color:var(--muted)}
   footer .fnote{margin-top:10px;font-size:12px;color:var(--muted)}
@@ -286,6 +292,10 @@
   var recordName = hashParts[0];
   var deepIndex = parseInt(hashParts[1], 10);
   var DEMO = /[?&]demo(=|&|$)/.test(location.search);
+  // ?demo&pitch — the marketing capture: gradient mock photos, icon-only
+  // PDF and file cards, no sender note (5.0 cannot write one).
+  var PITCH = DEMO && /[?&]pitch(=|&|$)/.test(location.search);
+  if(PITCH) document.documentElement.classList.add('pitch');
   if(DEMO && !recordName) recordName = 'demo';
   function deepLink(recordIndex){ return 'https://photosendr.com/v/' + recordName + '?p=' + (recordIndex + 1); }
 
@@ -392,7 +402,7 @@
         // poster instead of leaving the tile black. The tile opens the
         // viewer, where the video plays with native controls.
         html += '<div class="vid"><button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="Video '+(i+1)+'">'+
-                '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true" src="'+url+'#t=0.001"></video>'+
+                '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"'+(it.poster ? ' poster="'+it.poster+'"' : '')+' src="'+url+(it.poster ? '' : '#t=0.001')+'"></video>'+
                 '<span class="badge" aria-hidden="true">▶</span></button>'+
                 '<button class="vdl" data-i="'+videoEntries.length+'">Download video</button></div>';
         videoEntries.push({ url: url, name: name });
@@ -542,6 +552,7 @@
   var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var CAN_SHARE_FILES = (function(){
+    if(PITCH) return false;
     try {
       return !!(navigator.share && navigator.canShare &&
                 navigator.canShare({ files: [new File([new Blob(['x'])], 'x.jpg', { type: 'image/jpeg' })] }));
@@ -639,6 +650,7 @@
   }
   // Grid: swap each PDF tile's icon for its first page, one at a time.
   function renderPdfThumbs(){
+    if(PITCH) return;   // the mock keeps the document icon
     var pdfs = S.viewables.filter(function(v){ return v.type === 'pdf'; });
     (function next(i){
       if(i >= pdfs.length) return;
@@ -1317,7 +1329,29 @@
 
   // ?demo — offline stand-in record (the CloudKit tokens are origin-locked,
   // so localhost can never look a real share up).
+  function gradientDataUrl(c1, c2, w, h){
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var g = cv.getContext('2d');
+    var lg = g.createLinearGradient(0, 0, w, h); lg.addColorStop(0, c1); lg.addColorStop(1, c2);
+    g.fillStyle = lg; g.fillRect(0, 0, w, h);
+    var rg = g.createRadialGradient(w * 0.3, h * 0.3, 0, w * 0.3, h * 0.3, Math.max(w, h) * 0.7);
+    rg.addColorStop(0, 'rgba(255,255,255,.35)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, w, h);
+    return cv.toDataURL('image/jpeg', 0.85);
+  }
+  function renderPitch(){
+    var items = [], types = [], names = [];
+    [['#f5a05a','#7ad1c8'], ['#8fb8f0','#f2a0c4'], ['#f0c96a','#8f9ef0'], ['#a8e6cf','#ffd3b6'], ['#c9b6ff','#ffe29a']].forEach(function(pair){
+      items.push({ downloadURL: gradientDataUrl(pair[0], pair[1], 1200, 900) }); types.push('photo'); names.push('');
+    });
+    items.push({ downloadURL: 'media/pitch-hero.mp4', poster: gradientDataUrl('#7ad1c8', '#5a8fe0', 1200, 900) }); types.push('video'); names.push('');
+    items.push({ downloadURL: demoPdfDataUrl() }); types.push('pdf'); names.push('Lease 2026.pdf');
+    items.push({ downloadURL: 'data:text/plain;base64,' + btoa('receipts') }); types.push('file'); names.push('receipts.zip');
+    render({ fields: { title: { value: 'Weekend at the lake' }, expiresAt: { value: Date.now() + 6 * 86400000 },
+                       items: { value: items }, itemTypes: { value: types }, itemNames: { value: names } } });
+  }
   function renderDemo(){
+    if(PITCH){ renderPitch(); return; }
     var items = [], types = [];
     var demoNames = [];
     items.push({ downloadURL: demoPdfDataUrl() }); types.push('pdf'); demoNames.push('Lease-2026.pdf');
