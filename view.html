@@ -23,7 +23,7 @@
   header .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
   header img{width:28px;height:28px;border-radius:7px}
   header .name{font-weight:600;font-size:16px}
-  h1{font-size:26px;font-weight:600;margin:0 0 4px}
+  h1{font-size:26px;font-weight:600;margin:0 0 4px;text-wrap:balance}
   .meta{color:var(--muted);font-size:14px;margin-bottom:26px}
   .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .from{display:flex;align-items:flex-start;gap:12px;margin:-8px 0 24px;max-width:640px}
@@ -45,16 +45,18 @@
   .pdfthumb .pdficon{font-size:44px;line-height:1}
   .filetile{cursor:default}
   .fileext{display:block;margin-top:6px;font-size:13px;font-weight:700;letter-spacing:.06em;opacity:.75}
-  .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center}
+  .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center;
+    overflow-wrap:anywhere;text-wrap:pretty}
   .notice{display:flex;align-items:flex-start;gap:12px;margin:0 0 22px;padding:12px 14px;border-radius:12px;
     border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.45}
   .notice[hidden]{display:none}
   .notice p{margin:0;flex:1}
   .notice .nclose{background:none;border:0;color:var(--muted);font:inherit;font-size:20px;line-height:1;
-    cursor:pointer;padding:0 2px;min-width:32px;min-height:32px}
+    cursor:pointer;padding:0 2px;min-width:44px;min-height:44px}
   .notice .nclose:focus-visible{outline:3px solid #fff;outline-offset:2px;border-radius:8px}
   .vdl{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--surface);
-    color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer}
+    color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;padding:11px 12px;cursor:pointer;
+    min-height:44px;font-variant-numeric:tabular-nums}
   .vdl[disabled]{opacity:.6;cursor:default}
   .grid video{width:100%;display:block}
   /* Tiles are buttons: they open the viewer, not a new tab. */
@@ -72,7 +74,7 @@
   .dlrow:empty{display:none}
   .dl{display:inline-block;margin:0;background:#fff;color:#000;font-weight:600;font-size:14px;
     padding:10px 18px;border-radius:12px;text-decoration:none;border:1px solid transparent;cursor:pointer;
-    font-family:inherit;min-height:44px}
+    font-family:inherit;min-height:44px;font-variant-numeric:tabular-nums}
   .dl.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
   .dl[disabled]{opacity:.6;cursor:default}
   .dl:focus-visible{outline:3px solid #fff;outline-offset:2px}
@@ -94,6 +96,16 @@
   footer a{color:var(--muted)}
   footer .fnote{margin-top:10px;font-size:12px;color:var(--muted)}
   footer .fnote a{text-decoration:underline}
+
+  /* Press feedback. Exact properties, never `all`, and scale(.96) — the
+     value below which a press starts to read as exaggerated. */
+  .dl,.lbbtn,.vdl,.tile,.notice .nclose,.lbnav{
+    transition-property:scale,opacity;transition-duration:120ms;
+    transition-timing-function:cubic-bezier(0.2,0,0,1)}
+  .dl:active,.lbbtn:active,.vdl:active,.notice .nclose:active,.lbnav:active{scale:.96}
+  /* Tiles are large, so they take a shallower press than a button would. */
+  .tile:active{scale:.985}
+  .dl[disabled]:active,.lbbtn[disabled]:active,.vdl[disabled]:active{scale:1}
 
   /* ---- Viewer (lightbox + slideshow) ---- */
   html.lb-open{overflow:hidden}
@@ -140,6 +152,8 @@
   @keyframes lbprog{to{transform:scaleX(1)}}
   @media (prefers-reduced-motion: reduce){
     .lbimg,.chrome,.lbnav{transition:none}
+    .dl,.lbbtn,.vdl,.tile,.notice .nclose{transition:none}
+    .dl:active,.lbbtn:active,.vdl:active,.tile:active,.notice .nclose:active,.lbnav:active{scale:1}
     .lbprog{display:none}
     .ico.spin{animation:none}
   }
