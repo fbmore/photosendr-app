@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhotoSendr — Photos, videos and files to your favorite people</title>
-<meta name="description" content="Snap or pick photos, add a file from Files — and videos with Pro — tidy them up, and send them to the people who always want them: by email, as a single PDF, or as an expiring iCloud link. No account, no tracking.">
+<meta name="description" content="Snap or pick photos, scan paper into a PDF, add videos and files — tidy them up, and send them to the people who always want them: by email, as a single PDF, or as an expiring iCloud link. No account, no tracking.">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <style>
@@ -168,6 +168,18 @@
     box-shadow:0 6px 18px rgba(0,0,0,.5);
     opacity:0;animation:pop 6s ease-in-out infinite;animation-delay:2.5s}
 
+  /* scan mock */
+  .scanstage{flex:1;display:flex;align-items:center;justify-content:center}
+  .scanwrap{position:relative;width:118px;height:150px}
+  .scanpage{width:118px;height:150px;border-radius:10px;background:linear-gradient(180deg,#f4f1ea,#e2ded3);
+    position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1)}
+  .scanpage i{position:absolute;left:16px;height:7px;border-radius:4px;background:rgba(0,0,0,.16);display:block}
+  .scanline{position:absolute;left:0;right:0;top:0;height:34px;
+    background:linear-gradient(180deg,rgba(43,106,204,0),rgba(43,106,204,.4),rgba(43,106,204,0));
+    transform:translateY(-40px);animation:scan 6s ease-in-out infinite}
+  @keyframes scan{0%{transform:translateY(-40px)}38%,100%{transform:translateY(190px)}}
+  .scanwrap .pdfbadge{bottom:-14px;left:0;right:0;width:max-content;margin:0 auto;transform:none}
+
   /* real screenshot gallery */
   .gallery{padding:72px 0 80px;border-top:1px solid var(--line);text-align:center}
   .gallery h2{font-size:clamp(26px,3.6vw,34px);font-weight:600;letter-spacing:-.01em;margin:0 0 12px}
@@ -255,12 +267,12 @@ in a tap — by email, PDF, or link.</p>
   <div class="wrap">
     <div class="copy">
       <h2>Multiple slots. One send.</h2>
-      <p>Fill the grid from your camera, your photo library, or Files — a PDF, a document, a scan — a whole batch at a time. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds. Six items free; with Pro the grid grows as you add.</p>
+      <p>Fill the grid from your camera, your photo library, or Files — a whole batch at a time. Starting empty? A welcome screen offers one big slot and a quick-pick button for your latest shots. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds. Three sets of ten items free; with Pro the grid grows as you add.</p>
       <ul class="bul">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap straight from the camera</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap shot after shot — the camera stays up, your tray fills</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-photo"/></svg>Or pick several from your library at once</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-check"/></svg>Add any file from Files — it rides along with the photos</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cell"/></svg>The grid grows as you add — with Pro</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-check"/></svg>Add any file from Files — or paste from the clipboard</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cell"/></svg>Drag to reorder — slot order is the send order</li>
       </ul>
     </div>
     <div class="phone"><div class="notch"></div><div class="screen">
@@ -355,13 +367,44 @@ in a tap — by email, PDF, or link.</p>
   </div>
 </section>
 
-<!-- 5 · VIDEOS (PRO) -->
+<!-- 5 · SCAN TO PDF -->
 <section class="feat">
   <div class="wrap">
     <div class="copy">
-      <span class="prochip">PRO</span>
+      <h2>Scan paper into one PDF</h2>
+      <p>Point the camera at a receipt, a form, a contract — PhotoSendr scans page after page into a single PDF that takes a slot like anything else. Flip through its pages right in the app, and rotate, crop, or black &amp; white any page before it goes out.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>As many pages as you like, one document</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-crop"/></svg>Rotate, crop &amp; black &amp; white — per page</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Scanned on your device, sent only by you</li>
+      </ul>
+    </div>
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">Scan paper<br>into one PDF</div>
+        <div class="obSub"><span>Page after page, one document</span><span>Every page stays editable</span></div>
+        <div class="scanstage">
+          <div class="scanwrap">
+            <div class="scanpage" aria-hidden="true">
+              <i style="top:20px;width:58%"></i><i style="top:36px;width:70%"></i><i style="top:52px;width:64%"></i>
+              <i style="top:76px;width:70%"></i><i style="top:92px;width:52%"></i><i style="top:118px;width:40%"></i>
+              <span class="scanline"></span>
+            </div>
+            <span class="pdfbadge">PDF</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 6 · VIDEOS -->
+<section class="feat flip">
+  <div class="wrap">
+    <div class="copy">
       <h2>Send videos too</h2>
-      <p>Record one with the camera inside the app, or drop one in from your library — videos sit in any slot, right next to your photos. They travel to your people through an iCloud link, compressed so they play in any browser, no app needed.</p>
+      <p>Record one with the camera inside the app, or drop one in from your library — videos sit in any slot, right next to your photos. They travel to your people through an iCloud link, compressed so they play in any browser, no app needed. One 30-second video per set is free; Pro lifts the cap and the count.</p>
       <ul class="bul">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Record in the app, or add from your library</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Compressed to play in every browser</li>
@@ -380,25 +423,24 @@ in a tap — by email, PDF, or link.</p>
   </div>
 </section>
 
-<!-- 6 · ICLOUD LINK (PRO) — laptop view -->
-<section class="feat flip wide">
+<!-- 7 · ICLOUD LINK — laptop view -->
+<section class="feat wide">
   <div class="wrap">
+    <div class="copy">
+      <h2>Share an expiring iCloud link</h2>
+      <p>One tap uploads your set to iCloud behind an unguessable address. Anyone can open it in a browser — no app, no account — flip through full-screen or sit back for a slideshow, and take the photos in one go as a single zip; videos and PDFs come down on their own. Expire the link whenever you like: it stops working and the copies are deleted from iCloud. One live link (7 days) is free; Pro gives you as many as you like, for 7, 30 or 90 days.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Opens in any browser — no app needed</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>View counts · expire anytime</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>Expires on its own</li>
+      </ul>
+    </div>
     <div class="browser">
       <div class="bbar">
         <div class="bdots"><i></i><i></i><i></i></div>
         <div class="burl">photosendr.com/v/8f3a…</div>
       </div>
       <img src="shot-viewer.png" alt="A shared PhotoSendr link open in a desktop browser: photo grid, video, Slideshow and Download all photos buttons" loading="lazy">
-    </div>
-    <div class="copy">
-      <span class="prochip">PRO</span>
-      <h2>Share an expiring iCloud link</h2>
-      <p>One tap uploads your set to iCloud behind an unguessable address. Anyone can open it in a browser — no app, no account — flip through full-screen or sit back for a slideshow, and take the photos in one go as a single zip; videos and PDFs come down on their own. Expire the link whenever you like: it stops working and the copies are deleted from iCloud.</p>
-      <ul class="bul">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Opens in any browser — no app needed</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>View counts · expire anytime</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>Expires on its own</li>
-      </ul>
     </div>
   </div>
 </section>
@@ -421,7 +463,7 @@ in a tap — by email, PDF, or link.</p>
 <section class="gallery">
   <div class="wrap">
     <h2>Go further with Pro</h2>
-    <p>Multiple sets for separate lives — properties, projects, grandparents — each with its own photos and its own send. Plus videos, a growing grid, and expiring iCloud links with view counts.</p>
+    <p>Multiple sets for separate lives — properties, projects, grandparents — each with its own photos and its own send. Plus full-length videos, a grid that grows to 100 items, and as many live iCloud links as you like.</p>
   </div>
 </section>
 
@@ -452,9 +494,9 @@ in a tap — by email, PDF, or link.</p>
 <section class="gallery">
   <div class="wrap">
     <h2>Private by design</h2>
-    <p>No account, no tracking, no analytics. Your photos stay on your phone until you send them — through your own Mail app or share sheet. Pro's share links use the app's iCloud storage, live behind an unguessable address, and expire on their own or the moment you say so. Making one uses your own iCloud sign-in; the people you send it to never need an account.</p>
+    <p>No account, no tracking, no analytics. Your photos stay on your phone until you send them — through your own Mail app or share sheet. Share links use the app's iCloud storage, live behind an unguessable address, and expire on their own or the moment you say so. Making one uses your own iCloud sign-in; the people you send it to never need an account.</p>
     <div class="price">
-      <div class="card"><div class="amt">Free</div><div class="per">One set · 6 items · email &amp; PDF</div></div>
+      <div class="card"><div class="amt">Free</div><div class="per">3 sets · 10 items each · one live link</div></div>
       <div class="card best"><div class="amt">$14.99<span style="font-size:14px;font-weight:400">/yr</span></div><div class="per">Pro · 7-day free trial</div></div>
       <div class="card"><div class="amt">$1.99<span style="font-size:14px;font-weight:400">/mo</span></div><div class="per">Pro monthly</div></div>
       <div class="card"><div class="amt">$34.99</div><div class="per">Pro lifetime · pay once</div></div>
@@ -467,7 +509,7 @@ in a tap — by email, PDF, or link.</p>
 <section class="ctafinal">
   <div class="wrap">
     <h2>Ready when you are.</h2>
-    <p style="color:var(--muted2);font-weight:300;line-height:1.65;max-width:520px;margin:0 auto">Free to send from day one — Pro when you want videos, sets, and expiring iCloud links.</p>
+    <p style="color:var(--muted2);font-weight:300;line-height:1.65;max-width:520px;margin:0 auto">Free to send from day one — Pro when you want full-length videos, unlimited sets, and links without limits.</p>
     <div class="ctarow">
       <a class="cta" href="#tour">Watch the tour</a>
       <a class="cta ghost" href="support.html">Questions? Support</a>
