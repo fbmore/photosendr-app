@@ -47,6 +47,13 @@
   .fileext{display:block;margin-top:6px;font-size:13px;font-weight:700;letter-spacing:.06em;opacity:.75}
   .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center;
     overflow-wrap:anywhere;text-wrap:pretty}
+  .grid .audiowrap{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
+    display:flex;flex-direction:column;align-self:start;padding:16px 14px}
+  .audiowrap .audioicon{font-size:32px;text-align:center;margin-bottom:6px}
+  .audioname{font-weight:600;font-size:13px;text-align:center;margin-bottom:10px;
+    overflow-wrap:anywhere;text-wrap:pretty}
+  .audiowrap audio{width:100%;display:block}
+  .audiowrap canvas{width:100%;height:44px;display:block;margin-bottom:8px;border-radius:8px}
   .notice{display:flex;align-items:flex-start;gap:12px;margin:0 0 22px;padding:12px 14px;border-radius:12px;
     border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1.45}
   .notice[hidden]{display:none}
@@ -235,7 +242,7 @@
     pageOf:'Page {n} of {total}', pdfLoading:'Loading PDF…', pdfError:'Couldn’t display this PDF — use Download to save it',
     downloadPdf:'Download PDF', downloadAll:'Download all ({n})', downloadAllPhotos:'Download all photos ({n})',
     nPhotos1:'1 photo', nPhotosN:'{n} photos', nPdf1:'1 PDF', nPdfN:'{n} PDFs', and:' and ',
-    nVideos1:'1 video', nVideosN:'{n} videos', nFiles1:'1 file', nFilesN:'{n} files',
+    nVideos1:'1 video', nVideosN:'{n} videos', nFiles1:'1 file', nFilesN:'{n} files', nAudio1:'1 audio clip', nAudioN:'{n} audio clips',
     zipHas:'The zip has {items}.', zipVideo1:'The video is too large to bundle — save it with the Download button under it.',
     zipVideoN:'The {n} videos are too large to bundle — save each one with the Download button under it.',
     dismiss:'Dismiss',
@@ -268,7 +275,7 @@
       pageOf:'Pagina {n} di {total}', pdfLoading:'Caricamento PDF…', pdfError:'Impossibile mostrare questo PDF — usa Scarica per salvarlo',
       downloadPdf:'Scarica PDF', downloadAll:'Scarica tutto ({n})', downloadAllPhotos:'Scarica tutte le foto ({n})',
       nPhotos1:'1 foto', nPhotosN:'{n} foto', nPdf1:'1 PDF', nPdfN:'{n} PDF', and:' e ',
-      nVideos1:'1 video', nVideosN:'{n} video', nFiles1:'1 file', nFilesN:'{n} file',
+      nVideos1:'1 video', nVideosN:'{n} video', nFiles1:'1 file', nFilesN:'{n} file', nAudio1:'1 clip audio', nAudioN:'{n} clip audio',
       zipHas:'Lo zip contiene {items}.', zipVideo1:'Il video è troppo grande per lo zip — salvalo con il pulsante Scarica qui sotto.',
       zipVideoN:'I {n} video sono troppo grandi per lo zip — salvali uno a uno con il pulsante Scarica.',
       dismiss:'Chiudi',
@@ -300,7 +307,7 @@
       pageOf:'Page {n} sur {total}', pdfLoading:'Chargement du PDF…', pdfError:'Impossible d’afficher ce PDF — utilisez Télécharger pour l’enregistrer',
       downloadPdf:'Télécharger le PDF', downloadAll:'Tout télécharger ({n})', downloadAllPhotos:'Télécharger toutes les photos ({n})',
       nPhotos1:'1 photo', nPhotosN:'{n} photos', nPdf1:'1 PDF', nPdfN:'{n} PDF', and:' et ',
-      nVideos1:'1 vidéo', nVideosN:'{n} vidéos', nFiles1:'1 fichier', nFilesN:'{n} fichiers',
+      nVideos1:'1 vidéo', nVideosN:'{n} vidéos', nFiles1:'1 fichier', nFilesN:'{n} fichiers', nAudio1:'1 clip audio', nAudioN:'{n} clips audio',
       zipHas:'Le zip contient {items}.', zipVideo1:'La vidéo est trop volumineuse pour le zip — enregistrez-la avec le bouton Télécharger en dessous.',
       zipVideoN:'Les {n} vidéos sont trop volumineuses pour le zip — enregistrez-les une à une avec le bouton Télécharger.',
       dismiss:'Fermer',
@@ -332,7 +339,7 @@
       pageOf:'Seite {n} von {total}', pdfLoading:'PDF wird geladen…', pdfError:'Dieses PDF kann nicht angezeigt werden — sichere es über „Laden“',
       downloadPdf:'PDF laden', downloadAll:'Alle laden ({n})', downloadAllPhotos:'Alle Fotos laden ({n})',
       nPhotos1:'1 Foto', nPhotosN:'{n} Fotos', nPdf1:'1 PDF', nPdfN:'{n} PDFs', and:' und ',
-      nVideos1:'1 Video', nVideosN:'{n} Videos', nFiles1:'1 Datei', nFilesN:'{n} Dateien',
+      nVideos1:'1 Video', nVideosN:'{n} Videos', nFiles1:'1 Datei', nFilesN:'{n} Dateien', nAudio1:'1 Audioclip', nAudioN:'{n} Audioclips',
       zipHas:'Das Zip enthält {items}.', zipVideo1:'Das Video ist zu groß fürs Zip — sichere es über den Laden-Button darunter.',
       zipVideoN:'Die {n} Videos sind zu groß fürs Zip — sichere sie einzeln über den Laden-Button.',
       dismiss:'Schließen',
@@ -364,7 +371,7 @@
       pageOf:'Página {n} de {total}', pdfLoading:'Cargando PDF…', pdfError:'No se puede mostrar este PDF — usa Descargar para guardarlo',
       downloadPdf:'Descargar PDF', downloadAll:'Descargar todo ({n})', downloadAllPhotos:'Descargar todas las fotos ({n})',
       nPhotos1:'1 foto', nPhotosN:'{n} fotos', nPdf1:'1 PDF', nPdfN:'{n} PDF', and:' y ',
-      nVideos1:'1 vídeo', nVideosN:'{n} vídeos', nFiles1:'1 archivo', nFilesN:'{n} archivos',
+      nVideos1:'1 vídeo', nVideosN:'{n} vídeos', nFiles1:'1 archivo', nFilesN:'{n} archivos', nAudio1:'1 clip de audio', nAudioN:'{n} clips de audio',
       zipHas:'El zip contiene {items}.', zipVideo1:'El vídeo es demasiado grande para el zip — guárdalo con el botón Descargar de debajo.',
       zipVideoN:'Los {n} vídeos son demasiado grandes para el zip — guárdalos uno a uno con el botón Descargar.',
       dismiss:'Cerrar',
@@ -512,7 +519,7 @@
     var message = cleanText(f.message && f.message.value, 600);
     var senderPhoto = (f.senderPhoto && f.senderPhoto.value && f.senderPhoto.value.downloadURL || '').replace('${f}', 'sender.jpg');
 
-    var photoEntries = [], videoEntries = [], pdfEntries = [], fileEntries = [], viewables = [];
+    var photoEntries = [], videoEntries = [], pdfEntries = [], fileEntries = [], audioEntries = [], viewables = [];
     var html = '<h1></h1><div class="meta"></div>' +
                ((senderName || message) ? '<div class="from"><span class="avatar" aria-hidden="true"></span><div><div class="fromname"></div><p class="note"></p></div></div>' : '') +
                '<div class="dlrow"></div><div class="grid">';
@@ -521,13 +528,15 @@
       // Anything this build doesn't recognise becomes a downloadable file
       // rather than a broken <img>. Without this a type added by a later app
       // version renders as a dead image on every page already deployed.
-      if(['photo','video','pdf','file'].indexOf(type) < 0) type = 'file';
+      if(['photo','video','pdf','file','audio'].indexOf(type) < 0) type = 'file';
       var isVideo = type === 'video';
       var isPdf = type === 'pdf';
       var isFile = type === 'file';
+      var isAudio = type === 'audio';
       var given = cleanName(names[i]);
       var name = given || (isPdf ? (title.replace(/[^\w\- ]+/g,'').trim() || 'document')+(pdfEntries.length ? '-'+(pdfEntries.length+1) : '')+'.pdf'
                        : isFile ? 'file-'+(i+1)
+                       : isAudio ? 'audio-'+(i+1)+'.m4a'
                        : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg'));
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
       if(isPdf){
@@ -561,6 +570,18 @@
                 '<button class="vdl" data-i="'+videoEntries.length+'">'+STR.downloadVideo+'</button></div>';
         videoEntries.push({ url: url, name: name });
         viewables.push({ url: url, type: 'video', name: name, index: i });
+      } else if(isAudio){
+        // Not a viewable (no lightbox entry) — same call as the file tile
+        // above: the native <audio controls> element IS the player, a
+        // second fullscreen player would add nothing. The <canvas> waveform
+        // is a progressive enhancement, drawn client-side once the audio
+        // decodes (see drawWaveform); the page works fine without it.
+        html += '<div class="audiowrap" id="item-'+i+'">'+
+                '<canvas class="wf" hidden></canvas>'+
+                '<div class="audioname"></div>'+
+                '<audio controls preload="metadata" src="'+url+'"></audio>'+
+                '<button class="vdl audiodl" data-a="'+audioEntries.length+'"></button></div>';
+        audioEntries.push({ url: url, name: name });
       } else {
         photoEntries.push({ url: url, name: name });
         viewables.push({ url: url, type: 'photo', name: name, index: i });
@@ -605,6 +626,18 @@
                     dl.textContent);
       });
     });
+    Array.prototype.forEach.call(content.querySelectorAll('.audiowrap'), function(wrap){
+      var dl = wrap.querySelector('.audiodl');
+      var entry = audioEntries[parseInt(dl.dataset.a, 10)];
+      if(!entry) return;
+      var nameEl = wrap.querySelector('.audioname');
+      if(nameEl) nameEl.textContent = entry.name;
+      dl.textContent = STR.downloadFile || 'Download';
+      dl.addEventListener('click', function(){
+        downloadOne(entry, dl, 'audio/mp4', dl.textContent);
+      });
+      drawWaveform(entry.url, wrap.querySelector('canvas.wf'));
+    });
     // Actions row: Slideshow leads, Download all follows.
     var dlrow = content.querySelector('.dlrow');
     var hasShow = viewables.length >= 2;
@@ -617,9 +650,9 @@
       sbtn.addEventListener('click', function(){ openAt(0, { play: true }); });
       dlrow.appendChild(sbtn);
     }
-    // The zip takes photos and PDFs; videos are too large to bundle in RAM,
-    // so a notice points at their own Download buttons.
-    var zipEntries = photoEntries.concat(pdfEntries).concat(fileEntries);
+    // The zip takes photos, PDFs, files, and audio; videos are too large to
+    // bundle in RAM, so a notice points at their own Download buttons.
+    var zipEntries = photoEntries.concat(pdfEntries).concat(fileEntries).concat(audioEntries);
     if(zipEntries.length){
       var btn = document.createElement('button');
       btn.className = hasShow ? 'dl ghost' : 'dl';
@@ -656,11 +689,13 @@
     var vids = types.filter(function(t){return t==='video';}).length;
     var pdfs = types.filter(function(t){return t==='pdf';}).length;
     var fls = types.filter(function(t){return t==='file';}).length;
+    var auds = types.filter(function(t){return t==='audio';}).length;
     var parts = [];
     if(pdfs) parts.push(pdfs===1 ? STR.nPdf1 : t('nPdfN', { n: pdfs }));
     if(photos) parts.push(photos===1 ? STR.nPhotos1 : t('nPhotosN', { n: photos }));
     if(vids) parts.push(vids===1 ? STR.nVideos1 : t('nVideosN', { n: vids }));
     if(fls) parts.push(fls===1 ? STR.nFiles1 : t('nFilesN', { n: fls }));
+    if(auds) parts.push(auds===1 ? STR.nAudio1 : t('nAudioN', { n: auds }));
     if(expiresAt) parts.push(t('linkExpires', { date: expiresAt.toLocaleDateString() }));
     content.querySelector('.meta').textContent = parts.join(' · ');
 
@@ -747,6 +782,41 @@
     return (IS_IOS && it.type !== 'pdf') ? STR.saveToPhotos : STR.shareItem;
   }
   function mimeFor(it){ return it.type === 'video' ? 'video/mp4' : (it.type === 'pdf' ? 'application/pdf' : 'image/jpeg'); }
+
+  // Progressive enhancement for an audio tile: decode the clip client-side
+  // and draw its peaks to the tile's canvas. The <audio controls> element
+  // is the real player and already works without this — on any failure
+  // (old browser, huge file, decode error) the canvas just stays hidden.
+  function drawWaveform(url, canvas){
+    if(!canvas) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    fetchAsset(url).then(function(buf){
+      var ctx = new AC();
+      return ctx.decodeAudioData(buf);
+    }).then(function(audioBuffer){
+      var data = audioBuffer.getChannelData(0);
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth || 260, h = 44;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      var g = canvas.getContext('2d');
+      g.scale(dpr, dpr);
+      var bars = Math.min(80, Math.max(20, Math.floor(w / 4)));
+      var step = Math.max(1, Math.floor(data.length / bars));
+      g.fillStyle = 'rgba(255,255,255,.5)';
+      for(var i = 0; i < bars; i++){
+        var start = i * step, max = 0;
+        for(var j = 0; j < step; j += 8){
+          var v = Math.abs(data[start + j] || 0);
+          if(v > max) max = v;
+        }
+        var barH = Math.max(2, max * h);
+        var barW = Math.max(1, (w / bars) - 2);
+        g.fillRect(i * (w / bars), (h - barH) / 2, barW, barH);
+      }
+      canvas.hidden = false;
+    }).catch(function(){ /* keep the plain <audio controls>, no waveform */ });
+  }
 
   function showZipNotice(photos, pdfs, videos){
     var el = document.getElementById('zipNotice');
