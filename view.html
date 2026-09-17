@@ -47,6 +47,21 @@
   .fileext{display:block;margin-top:6px;font-size:13px;font-weight:700;letter-spacing:.06em;opacity:.75}
   .pdfname{display:block;font-weight:600;font-size:14px;padding:10px 12px;text-align:center;
     overflow-wrap:anywhere;text-wrap:pretty}
+  .pdfname[hidden]{display:none}
+  .audioname[hidden]{display:none}
+  /* Optional user-set name for a photo/video tile — an overlay scrim since,
+     unlike pdf/file/audio, there's no card footer to put it in. Truncated
+     so a long name never wraps into multiple lines. Only ever populated
+     with a real name (render()); an unnamed item keeps this hidden rather
+     than showing a placeholder. */
+  .tile .tag{position:absolute;left:0;right:0;bottom:0;padding:20px 10px 8px;
+    background:linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,0));
+    color:#fff;font-size:13px;font-weight:600;line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  /* Video-only: leave room so a long name's ellipsis never sits under the
+     play badge (bottom-right). */
+  .grid .vid .tile .tag{right:44px}
+  .tile .tag[hidden]{display:none}
   .grid .audiowrap{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);
     display:flex;flex-direction:column;align-self:start;padding:16px 14px}
   .audiowrap .audioicon{font-size:32px;text-align:center;margin-bottom:6px}
@@ -539,14 +554,18 @@
                        : isAudio ? 'audio-'+(i+1)+'.m4a'
                        : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg'));
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
+      // The label element only ever shows a real, user-set name (`given`) —
+      // never `name`'s generated fallback ("file-3", "audio-2.m4a", an
+      // UUID-derived filename). An unnamed item just shows no label; a
+      // generated placeholder there would read as confusing noise, not help.
       if(isPdf){
         // First page is rendered in as a thumbnail once pdf.js has loaded.
         html += '<div class="pdfwrap" id="item-'+i+'">'+
-                '<button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="PDF '+(i+1)+'">'+
+                '<button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="'+esc('PDF '+(i+1)+(given ? ', '+given : ''))+'">'+
                 '<span class="pdfthumb"><span class="pdficon" aria-hidden="true">📄</span></span>'+
-                '<span class="pdfname"></span></button>'+
+                '<span class="pdfname" hidden></span></button>'+
                 '<button class="vdl pdfdl" data-p="'+pdfEntries.length+'"></button></div>';
-        pdfEntries.push({ url: url, name: name });
+        pdfEntries.push({ url: url, name: name, label: given });
         viewables.push({ url: url, type: 'pdf', name: name, index: i });
       } else if(isFile){
         // No preview to offer for an arbitrary document, so a file tile is
@@ -557,18 +576,19 @@
                 '<span class="tile filetile">'+
                 '<span class="pdfthumb"><span class="pdficon" aria-hidden="true">📄</span>'+
                 '<span class="fileext" aria-hidden="true"></span></span>'+
-                '<span class="pdfname"></span></span>'+
+                '<span class="pdfname" hidden></span></span>'+
                 '<button class="vdl pdfdl" data-f="'+fileEntries.length+'"></button></div>';
-        fileEntries.push({ url: url, name: name });
+        fileEntries.push({ url: url, name: name, label: given });
       } else if(isVideo){
         // #t=0.001 makes Safari (and friends) paint the first frame as a
         // poster instead of leaving the tile black. The tile opens the
         // viewer, where the video plays with native controls.
-        html += '<div class="vid"><button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="'+t('videoN',{n:i+1})+'">'+
+        html += '<div class="vid"><button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="'+esc(t('videoN',{n:i+1})+(given ? ', '+given : ''))+'">'+
                 '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"'+(it.poster ? ' poster="'+it.poster+'"' : '')+' src="'+url+(it.poster ? '' : '#t=0.001')+'"></video>'+
+                '<span class="tag" hidden data-tag="'+videoEntries.length+'"></span>'+
                 '<span class="badge" aria-hidden="true">▶</span></button>'+
                 '<button class="vdl" data-i="'+videoEntries.length+'">'+STR.downloadVideo+'</button></div>';
-        videoEntries.push({ url: url, name: name });
+        videoEntries.push({ url: url, name: name, label: given });
         viewables.push({ url: url, type: 'video', name: name, index: i });
       } else if(isAudio){
         // Not a viewable (no lightbox entry) — same call as the file tile
@@ -578,15 +598,16 @@
         // decodes (see drawWaveform); the page works fine without it.
         html += '<div class="audiowrap" id="item-'+i+'">'+
                 '<canvas class="wf" hidden></canvas>'+
-                '<div class="audioname"></div>'+
+                '<div class="audioname" hidden></div>'+
                 '<audio controls preload="metadata" src="'+url+'"></audio>'+
                 '<button class="vdl audiodl" data-a="'+audioEntries.length+'"></button></div>';
-        audioEntries.push({ url: url, name: name });
+        audioEntries.push({ url: url, name: name, label: given });
       } else {
-        photoEntries.push({ url: url, name: name });
+        photoEntries.push({ url: url, name: name, label: given });
         viewables.push({ url: url, type: 'photo', name: name, index: i });
         html += '<button type="button" class="tile" data-v="'+(viewables.length-1)+'" aria-haspopup="dialog">'+
-                '<img src="'+url+'" alt="Photo '+(i+1)+'" loading="lazy"></button>';
+                '<img src="'+url+'" alt="'+esc(given || ('Photo '+(i+1)))+'" loading="lazy">'+
+                '<span class="tag" hidden data-tag="'+(photoEntries.length-1)+'"></span></button>';
       }
     });
     html += '</div>';
@@ -611,9 +632,9 @@
       var entry = isFileTile ? fileEntries[parseInt(dl.dataset.f, 10)]
                              : pdfEntries[parseInt(dl.dataset.p, 10)];
       if(!entry) return;
-      // A 5.1 share carries the real filename; older ones fall back to the
-      // share title, exactly as they always did.
-      if(nameEl) nameEl.textContent = isFileTile ? entry.name : (entry.name || (title + ' (PDF)'));
+      // Only a real, user-set name is ever shown as a label — see the
+      // comment above the render() loop that builds these tiles.
+      if(nameEl){ nameEl.textContent = entry.label || ''; nameEl.hidden = !entry.label; }
       var ext = wrap.querySelector('.fileext');
       if(ext){
         var m = /\.([A-Za-z0-9]{1,6})$/.exec(entry.name || '');
@@ -631,12 +652,22 @@
       var entry = audioEntries[parseInt(dl.dataset.a, 10)];
       if(!entry) return;
       var nameEl = wrap.querySelector('.audioname');
-      if(nameEl) nameEl.textContent = entry.name;
+      if(nameEl){ nameEl.textContent = entry.label || ''; nameEl.hidden = !entry.label; }
       dl.textContent = STR.downloadFile || 'Download';
       dl.addEventListener('click', function(){
         downloadOne(entry, dl, 'audio/mp4', dl.textContent);
       });
       drawWaveform(entry.url, wrap.querySelector('canvas.wf'));
+    });
+    // Photo/video tiles: same "only a real name shows" rule, in an overlay
+    // strip along the bottom of the tile (there's no card footer to use,
+    // unlike pdf/file/audio's own dedicated name row). data-tag matches
+    // this tag span to its entry by position, same shape as data-p/-f/-a
+    // above.
+    Array.prototype.forEach.call(content.querySelectorAll('.tile .tag'), function(tagEl){
+      var isVid = tagEl.closest('.vid') != null;
+      var entry = (isVid ? videoEntries : photoEntries)[parseInt(tagEl.dataset.tag, 10)];
+      if(entry && entry.label){ tagEl.textContent = entry.label; tagEl.hidden = false; }
     });
     // Actions row: Slideshow leads, Download all follows.
     var dlrow = content.querySelector('.dlrow');
@@ -720,6 +751,14 @@
 
     // Count the view (anonymous: stores only link-id -> integer)
     if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
+  }
+
+  // Attributes built by string concatenation into innerHTML (aria-label,
+  // alt) need this — textContent assignments elsewhere are already safe
+  // without it.
+  function esc(v){
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
   function cleanName(v){
