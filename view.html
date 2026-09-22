@@ -135,6 +135,54 @@
   .tile:active{scale:.985}
   .dl[disabled]:active,.lbbtn[disabled]:active,.vdl[disabled]:active{scale:1}
 
+  /* ---- Print at Walgreens (prototype) ---- */
+  html.ps-open{overflow:hidden}
+  .ps{width:min(560px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:0;border-radius:20px;
+    background:#141414;color:var(--ink);font:inherit;overflow:hidden;
+    box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 64px rgba(0,0,0,.6)}
+  .ps[open]{display:flex;flex-direction:column}
+  .ps::backdrop{background:rgba(0,0,0,.7)}
+  .pshead{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 12px}
+  .pshead h2{margin:0;font-size:20px;font-weight:600;text-wrap:balance}
+  .pshead p{margin:2px 0 0;color:var(--muted);font-size:14px;text-wrap:pretty}
+  .pshead .lbbtn{flex:none;margin-left:auto;background:var(--surface);border-color:var(--line)}
+  .psbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px 10px;
+    font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .psbar button{background:none;border:0;color:var(--ink);font:inherit;font-weight:600;cursor:pointer;
+    min-height:44px;padding:0 4px;text-decoration:underline;text-underline-offset:3px}
+  .psbody{overflow-y:auto;overscroll-behavior:contain;padding:0 20px 8px}
+  .pslist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .psitem label{display:flex;flex-direction:column;gap:8px;height:100%;padding:8px;border-radius:12px;background:var(--surface);
+    box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;min-height:44px}
+  .psitem label:has(input:checked) .psthumb{opacity:1}
+  .psitem label:has(input:checked){box-shadow:inset 0 0 0 2px #fff}
+  .psitem label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
+  .psthumb{position:relative;overflow:hidden;border-radius:4px;background:rgba(255,255,255,.04);opacity:.45;
+    transition-property:opacity;transition-duration:120ms;transition-timing-function:cubic-bezier(0.2,0,0,1)}
+  .psthumb img{display:block;width:100%;height:100%;object-fit:contain;outline:1px solid oklch(1 0 0 / .1);outline-offset:-1px}
+  /* The 4x6 crop: a centred 3:2 window; everything outside it is shaded. */
+  .pscrop{position:absolute;left:50%;top:50%;translate:-50% -50%;box-shadow:0 0 0 999px rgba(0,0,0,.55);
+    outline:1px dashed rgba(255,255,255,.8);pointer-events:none}
+  .psrow{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .psrow input{width:20px;height:20px;margin:0;accent-color:#fff;flex:none}
+  .psname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pswarn{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.35;color:#ffd48a}
+  .pswarn[hidden]{display:none}
+  .pswarn .ico{width:14px;height:14px;flex:none;margin-top:1px}
+  .psfoot{padding:12px 20px 20px;border-top:1px solid var(--line)}
+  .psfoot .psnote{margin:0 0 4px;font-size:13px;color:var(--muted);text-wrap:pretty}
+  .psstatus{margin:0 0 4px;font-size:14px;text-wrap:pretty}
+  .psstatus:empty{display:none}
+  .psstatus.err{color:#ff9d8f}
+  .psactions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:10px}
+  .psactions .dl{flex:0 1 auto}
+  .dl .ico.spin{margin-right:7px}
+  @media (prefers-reduced-motion: no-preference){
+    .ps[open]{animation:psin 200ms cubic-bezier(0.2,0,0,1)}
+    @keyframes psin{from{opacity:0;translate:0 8px}}
+  }
+  @media (prefers-reduced-motion: reduce){ .psthumb{transition:none} }
+
   /* ---- Viewer (lightbox + slideshow) ---- */
   html.lb-open{overflow:hidden}
   .lb{position:fixed;inset:0;height:100vh;height:100dvh;background:#000;z-index:1000;
@@ -239,6 +287,25 @@
 </div>
 <div id="lbLive" class="vh" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Print at Walgreens: pick photos, preview the 4x6 crop, hand off to checkout. -->
+<dialog id="ps" class="ps" aria-labelledby="psTitle" aria-describedby="psSub">
+  <div class="pshead">
+    <div><h2 id="psTitle"></h2><p id="psSub"></p></div>
+    <button id="psClose" class="lbbtn" type="button"></button>
+  </div>
+  <div class="psbar"><span id="psCount" aria-live="polite"></span><button id="psAll" type="button"></button></div>
+  <div class="psbody"><ul id="psList" class="pslist"></ul></div>
+  <div class="psfoot">
+    <p id="psHint" class="psnote"></p>
+    <p id="psNotice" class="psnote"></p>
+    <p id="psStatus" class="psstatus" role="status"></p>
+    <div class="psactions">
+      <button id="psCancel" class="dl ghost" type="button"></button>
+      <button id="psGo" class="dl" type="button"></button>
+    </div>
+  </div>
+</dialog>
+
 <script>
 (function(){
   // CloudKit Web Services REST — tried in order. Release builds write to
@@ -281,7 +348,19 @@
     linkExpires:'link expires {date}',
     zipFail:'Couldn’t prepare the zip — tap photos to save them one by one',
     report:'Report this share',
-    kindPhoto:'photo', kindVideo:'video', kindPdf:'PDF'
+    kindPhoto:'photo', kindVideo:'video', kindPdf:'PDF',
+    print:'Print at Walgreens', printSub:'4x6 prints to pick up at a Walgreens store.',
+    printNotice:'Photos you select will be sent to Walgreens.',
+    printCropHint:'Shaded edges are trimmed on a 4x6 print.',
+    printSelectAll:'Select all', printSelectNone:'Select none', printCount:'{n} of {total} selected',
+    printContinue:'Continue to Walgreens ({n})', printContinueAnyway:'Continue to Walgreens', printCancel:'Cancel',
+    printPreparing:'Preparing…', printLowRes:'Low resolution — may print blurry', printPhotoN:'Photo {n}',
+    printErrExpired:'This link has expired, so it can’t be printed.',
+    printErrBusy:'Too many print requests for this share. Try again in an hour.',
+    printErrNone:'None of these photos are in the share any more.',
+    printErrFailed:'Couldn’t reach Walgreens. Try again.',
+    printDropped1:'1 photo was skipped because it’s no longer in the share.',
+    printDroppedN:'{n} photos were skipped because they’re no longer in the share.'
   };
   var L10N = {
     it: {
@@ -314,7 +393,19 @@
       linkExpires:'il link scade il {date}',
       zipFail:'Impossibile preparare lo zip — tocca le foto per salvarle una a una',
       report:'Segnala questa condivisione',
-      kindPhoto:'foto', kindVideo:'video', kindPdf:'PDF'
+      kindPhoto:'foto', kindVideo:'video', kindPdf:'PDF',
+      print:'Stampa da Walgreens', printSub:'Stampe 4x6 da ritirare in un negozio Walgreens.',
+      printNotice:'Le foto che selezioni verranno inviate a Walgreens.',
+      printCropHint:'I bordi ombreggiati vengono tagliati nella stampa 4x6.',
+      printSelectAll:'Seleziona tutto', printSelectNone:'Deseleziona tutto', printCount:'{n} di {total} selezionate',
+      printContinue:'Continua su Walgreens ({n})', printContinueAnyway:'Continua su Walgreens', printCancel:'Annulla',
+      printPreparing:'Preparazione…', printLowRes:'Bassa risoluzione — la stampa potrebbe essere sfocata', printPhotoN:'Foto {n}',
+      printErrExpired:'Questo link è scaduto e non può essere stampato.',
+      printErrBusy:'Troppe richieste di stampa per questa condivisione. Riprova tra un’ora.',
+      printErrNone:'Nessuna di queste foto è ancora nella condivisione.',
+      printErrFailed:'Impossibile contattare Walgreens. Riprova.',
+      printDropped1:'1 foto è stata saltata perché non è più nella condivisione.',
+      printDroppedN:'{n} foto sono state saltate perché non sono più nella condivisione.'
     },
     fr: {
       viewer:'Visionneuse', close:'Fermer', prev:'Précédent', next:'Suivant',
@@ -346,7 +437,19 @@
       linkExpires:'le lien expire le {date}',
       zipFail:'Impossible de préparer le zip — touchez les photos pour les enregistrer une à une',
       report:'Signaler ce partage',
-      kindPhoto:'photo', kindVideo:'vidéo', kindPdf:'PDF'
+      kindPhoto:'photo', kindVideo:'vidéo', kindPdf:'PDF',
+      print:'Imprimer chez Walgreens', printSub:'Tirages 4x6 à retirer dans un magasin Walgreens.',
+      printNotice:'Les photos sélectionnées seront envoyées à Walgreens.',
+      printCropHint:'Les bords grisés sont rognés sur un tirage 4x6.',
+      printSelectAll:'Tout sélectionner', printSelectNone:'Tout désélectionner', printCount:'{n} sur {total} sélectionnées',
+      printContinue:'Continuer vers Walgreens ({n})', printContinueAnyway:'Continuer vers Walgreens', printCancel:'Annuler',
+      printPreparing:'Préparation…', printLowRes:'Basse résolution — le tirage risque d’être flou', printPhotoN:'Photo {n}',
+      printErrExpired:'Ce lien a expiré et ne peut pas être imprimé.',
+      printErrBusy:'Trop de demandes d’impression pour ce partage. Réessayez dans une heure.',
+      printErrNone:'Aucune de ces photos n’est encore dans le partage.',
+      printErrFailed:'Impossible de joindre Walgreens. Réessayez.',
+      printDropped1:'1 photo a été ignorée car elle n’est plus dans le partage.',
+      printDroppedN:'{n} photos ont été ignorées car elles ne sont plus dans le partage.'
     },
     de: {
       viewer:'Fotoanzeige', close:'Schließen', prev:'Zurück', next:'Weiter',
@@ -378,7 +481,19 @@
       linkExpires:'Link läuft am {date} ab',
       zipFail:'Zip konnte nicht erstellt werden — tippe die Fotos an und sichere sie einzeln',
       report:'Diese Freigabe melden',
-      kindPhoto:'Foto', kindVideo:'Video', kindPdf:'PDF'
+      kindPhoto:'Foto', kindVideo:'Video', kindPdf:'PDF',
+      print:'Bei Walgreens drucken', printSub:'4x6-Abzüge zum Abholen in einer Walgreens-Filiale.',
+      printNotice:'Die ausgewählten Fotos werden an Walgreens gesendet.',
+      printCropHint:'Schattierte Ränder werden beim 4x6-Abzug abgeschnitten.',
+      printSelectAll:'Alle auswählen', printSelectNone:'Auswahl aufheben', printCount:'{n} von {total} ausgewählt',
+      printContinue:'Weiter zu Walgreens ({n})', printContinueAnyway:'Weiter zu Walgreens', printCancel:'Abbrechen',
+      printPreparing:'Wird vorbereitet…', printLowRes:'Geringe Auflösung — Abzug kann unscharf werden', printPhotoN:'Foto {n}',
+      printErrExpired:'Dieser Link ist abgelaufen und kann nicht gedruckt werden.',
+      printErrBusy:'Zu viele Druckanfragen für diese Freigabe. Versuch es in einer Stunde erneut.',
+      printErrNone:'Keines dieser Fotos ist noch in der Freigabe.',
+      printErrFailed:'Walgreens ist nicht erreichbar. Bitte erneut versuchen.',
+      printDropped1:'1 Foto wurde übersprungen, weil es nicht mehr in der Freigabe ist.',
+      printDroppedN:'{n} Fotos wurden übersprungen, weil sie nicht mehr in der Freigabe sind.'
     },
     es: {
       viewer:'Visor de fotos', close:'Cerrar', prev:'Anterior', next:'Siguiente',
@@ -410,7 +525,19 @@
       linkExpires:'el enlace caduca el {date}',
       zipFail:'No se pudo preparar el zip — toca las fotos para guardarlas una a una',
       report:'Denunciar este contenido',
-      kindPhoto:'foto', kindVideo:'vídeo', kindPdf:'PDF'
+      kindPhoto:'foto', kindVideo:'vídeo', kindPdf:'PDF',
+      print:'Imprimir en Walgreens', printSub:'Copias 4x6 para recoger en una tienda Walgreens.',
+      printNotice:'Las fotos que selecciones se enviarán a Walgreens.',
+      printCropHint:'Los bordes sombreados se recortan en una copia 4x6.',
+      printSelectAll:'Seleccionar todo', printSelectNone:'No seleccionar ninguna', printCount:'{n} de {total} seleccionadas',
+      printContinue:'Continuar en Walgreens ({n})', printContinueAnyway:'Continuar en Walgreens', printCancel:'Cancelar',
+      printPreparing:'Preparando…', printLowRes:'Baja resolución — la copia puede salir borrosa', printPhotoN:'Foto {n}',
+      printErrExpired:'Este enlace ha caducado y no se puede imprimir.',
+      printErrBusy:'Demasiadas solicitudes de impresión para este enlace. Inténtalo en una hora.',
+      printErrNone:'Ninguna de estas fotos sigue en el enlace.',
+      printErrFailed:'No se pudo conectar con Walgreens. Inténtalo de nuevo.',
+      printDropped1:'Se omitió 1 foto porque ya no está en el enlace.',
+      printDroppedN:'Se omitieron {n} fotos porque ya no están en el enlace.'
     }
   };
   var LANG = (navigator.language || 'en').toLowerCase().slice(0, 2);
@@ -441,7 +568,8 @@
     clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
     spinner: '<path d="M12 3a9 9 0 019 9"/>',
-    share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/>'
+    share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/>',
+    printer: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>'
   };
   function icon(name, cls){
     return '<svg class="ico'+(cls ? ' '+cls : '')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '+
@@ -603,7 +731,7 @@
                 '<button class="vdl audiodl" data-a="'+audioEntries.length+'"></button></div>';
         audioEntries.push({ url: url, name: name, label: given });
       } else {
-        photoEntries.push({ url: url, name: name, label: given });
+        photoEntries.push({ url: url, name: name, label: given, index: i });
         viewables.push({ url: url, type: 'photo', name: name, index: i });
         html += '<button type="button" class="tile" data-v="'+(viewables.length-1)+'" aria-haspopup="dialog">'+
                 '<img src="'+url+'" alt="'+esc(given || ('Photo '+(i+1)))+'" loading="lazy">'+
@@ -711,6 +839,7 @@
       notice.querySelector('.nclose').addEventListener('click', function(){ notice.hidden = true; });
       dlrow.parentNode.insertBefore(notice, dlrow.nextSibling);
     }
+    if(photoEntries.length) addPrintButton(dlrow, photoEntries);
     Array.prototype.forEach.call(content.querySelectorAll('.vdl'), function(vbtn){
       vbtn.addEventListener('click', function(){
         downloadVideo(videoEntries[parseInt(vbtn.dataset.i, 10)], vbtn);
@@ -1590,6 +1719,150 @@
     return 'data:application/pdf;base64,' + btoa(out);
   }
 
+  // ---- Print at Walgreens (prototype) ----
+  // The worker checks the share is still live and hands back a checkout URL
+  // (a mock page until the Walgreens key exists). ?api=staging points at the
+  // staging worker; production has no /print route yet, so the eligibility
+  // check fails there and the button never appears.
+  var PRINT_API = /[?&]api=staging(&|$)/.test(location.search)
+    ? 'https://photosendr-views-staging.fbmore.workers.dev'
+    : 'https://photosendr-views.fbmore.workers.dev';
+  // 4x6 at 150 dpi: below this on the crop's short side a print looks soft.
+  var PRINT_MIN_SHORT_PX = 600;
+
+  function addPrintButton(dlrow, photos){
+    // ?as=US tests the gate from abroad; only the staging worker honours it.
+    var as = /[?&]as=([A-Za-z]{2})(&|$)/.exec(location.search);
+    var force = as ? '?as=' + as[1] : '';
+    fetch(PRINT_API + '/print/eligible' + force).then(function(r){ return r.ok ? r.json() : { eligible: false }; })
+      .then(function(d){
+        if(!d.eligible) return;
+        var b = document.createElement('button');
+        b.className = 'dl ghost';
+        b.innerHTML = icon('printer') + '<span></span>';
+        b.querySelector('span').textContent = STR.print;
+        b.setAttribute('aria-haspopup', 'dialog');
+        b.addEventListener('click', function(){ openPrint(photos, b); });
+        dlrow.appendChild(b);
+      }).catch(function(){});
+  }
+
+  var ps = document.getElementById('ps'), psList = document.getElementById('psList'),
+      psCount = document.getElementById('psCount'), psAll = document.getElementById('psAll'),
+      psGo = document.getElementById('psGo'), psStatus = document.getElementById('psStatus');
+  var P = { photos: [], busy: false, checkoutUrl: '' };
+
+  document.getElementById('psTitle').textContent = STR.print;
+  document.getElementById('psSub').textContent = STR.printSub;
+  document.getElementById('psHint').textContent = STR.printCropHint;
+  document.getElementById('psNotice').textContent = STR.printNotice;
+  document.getElementById('psCancel').textContent = STR.printCancel;
+  setBtn(document.getElementById('psClose'), STR.close, 'close');
+  document.getElementById('psClose').addEventListener('click', function(){ ps.close(); });
+  document.getElementById('psCancel').addEventListener('click', function(){ ps.close(); });
+  ps.addEventListener('close', function(){ document.documentElement.classList.remove('ps-open'); });
+
+  function psChecks(){ return Array.prototype.slice.call(psList.querySelectorAll('input[type=checkbox]')); }
+  function psSync(){
+    var boxes = psChecks(), n = boxes.filter(function(c){ return c.checked; }).length;
+    psCount.textContent = t('printCount', { n: n, total: boxes.length });
+    psAll.textContent = n === boxes.length ? STR.printSelectNone : STR.printSelectAll;
+    P.checkoutUrl = '';
+    if(!P.busy){ psGo.textContent = t('printContinue', { n: n }); psGo.disabled = n === 0; }
+  }
+  psAll.addEventListener('click', function(){
+    var boxes = psChecks(), all = boxes.every(function(c){ return c.checked; });
+    boxes.forEach(function(c){ c.checked = !all; });
+    psStatus.textContent = '';
+    psSync();
+  });
+
+  // Size the thumb to the photo and draw the centred 3:2 crop inside it;
+  // flag the photo when that crop is too small to print sharply.
+  function psMeasure(img, thumb, crop, warn, box){
+    var w = img.naturalWidth, h = img.naturalHeight;
+    if(!w || !h) return;
+    thumb.style.aspectRatio = w + ' / ' + h;
+    var landscape = w >= h, long = Math.max(w, h), short = Math.min(w, h);
+    var cropShort = Math.min(short, long / 1.5);
+    var cw = landscape ? cropShort * 1.5 : cropShort, ch = landscape ? cropShort : cropShort * 1.5;
+    crop.style.width = (cw / w * 100) + '%';
+    crop.style.height = (ch / h * 100) + '%';
+    if(cropShort < PRINT_MIN_SHORT_PX){ warn.hidden = false; box.setAttribute('aria-describedby', warn.id); }
+  }
+
+  function openPrint(photos, opener){
+    P.photos = photos; P.busy = false; P.checkoutUrl = '';
+    psStatus.textContent = ''; psStatus.className = 'psstatus';
+    psList.innerHTML = '';
+    photos.forEach(function(p, k){
+      var li = document.createElement('li'); li.className = 'psitem';
+      var id = 'psw' + k;
+      li.innerHTML = '<label><span class="psthumb"><img alt="" decoding="async"><span class="pscrop" aria-hidden="true"></span></span>' +
+        '<span class="psrow"><input type="checkbox" checked><span class="psname"></span></span>' +
+        '<span class="pswarn" id="' + id + '" hidden>' + icon('alert') + '<span></span></span></label>';
+      li.querySelector('.psname').textContent = p.label || t('printPhotoN', { n: p.index + 1 });
+      li.querySelector('.pswarn span').textContent = STR.printLowRes;
+      var img = li.querySelector('img'), box = li.querySelector('input');
+      box.addEventListener('change', function(){ psStatus.textContent = ''; psSync(); });
+      img.addEventListener('load', function(){ psMeasure(img, li.querySelector('.psthumb'), li.querySelector('.pscrop'), li.querySelector('.pswarn'), box); });
+      img.src = p.url;
+      psList.appendChild(li);
+    });
+    psSync();
+    document.documentElement.classList.add('ps-open');
+    ps.showModal();
+    // Land on the list, not Close: the first thing to do here is choose.
+    var first = psList.querySelector('input'); if(first) first.focus();
+    ps.addEventListener('close', function once(){ ps.removeEventListener('close', once); if(opener) opener.focus(); });
+  }
+
+  function psBusy(on){
+    P.busy = on;
+    psGo.disabled = on;
+    if(on){ psGo.innerHTML = icon('spinner', 'spin') + '<span></span>'; psGo.querySelector('span').textContent = STR.printPreparing; }
+    else psSync();
+  }
+  function psError(text){ psStatus.className = 'psstatus err'; psStatus.textContent = text; }
+
+  psGo.addEventListener('click', function(){
+    if(P.busy) return;
+    if(P.checkoutUrl){ location.assign(P.checkoutUrl); return; }
+    var boxes = psChecks(), idx = [];
+    boxes.forEach(function(c, k){ if(c.checked) idx.push(P.photos[k].index); });
+    if(!idx.length) return;
+    psStatus.textContent = '';
+    psBusy(true);
+    fetch(PRINT_API + '/print', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ shareId: DEMO ? 'demo' : recordName, indexes: idx })
+    }).then(function(r){ return r.json().then(function(d){ return { status: r.status, d: d }; }); })
+      .then(function(res){
+        var d = res.d;
+        if(res.status === 200 && d.checkoutUrl){
+          if(d.dropped){
+            // Say what was skipped before leaving; the next tap goes on.
+            P.busy = false; psGo.disabled = false;
+            psStatus.className = 'psstatus';
+            psStatus.textContent = d.dropped === 1 ? STR.printDropped1 : t('printDroppedN', { n: d.dropped });
+            psGo.textContent = STR.printContinueAnyway;
+            P.checkoutUrl = d.checkoutUrl;
+            return;
+          }
+          location.assign(d.checkoutUrl);
+          return;
+        }
+        psBusy(false);
+        psError(res.status === 410 || res.status === 404 ? STR.printErrExpired
+              : res.status === 429 ? STR.printErrBusy
+              : res.status === 422 ? STR.printErrNone
+              : STR.printErrFailed);
+      })
+      .catch(function(){ psBusy(false); psError(STR.printErrFailed); });
+  });
+  // Back from checkout via bfcache: the sheet must not sit on "Preparing…".
+  window.addEventListener('pageshow', function(e){ if(e.persisted && P.busy) psBusy(false); });
+
   // ?demo — offline stand-in record (the CloudKit tokens are origin-locked,
   // so localhost can never look a real share up).
   function gradientDataUrl(c1, c2, w, h){
@@ -1631,6 +1904,10 @@
       items.push({ downloadURL: cv.toDataURL('image/jpeg', 0.8) }); types.push('photo'); demoNames.push('');
     });
     items.push({ downloadURL: 'media/pitch-hero.mp4' }); types.push('video'); demoNames.push('');
+    // Too small for a sharp 4x6, so the print sheet's warning shows.
+    var sm = document.createElement('canvas'); sm.width = 640; sm.height = 480;
+    var sg = sm.getContext('2d'); sg.fillStyle = '#34495e'; sg.fillRect(0, 0, 640, 480);
+    items.push({ downloadURL: sm.toDataURL('image/jpeg', 0.8) }); types.push('photo'); demoNames.push('Old scan');
     var av = document.createElement('canvas'); av.width = av.height = 256;
     var ag = av.getContext('2d'); ag.fillStyle = '#e67e22'; ag.fillRect(0, 0, 256, 256);
     ag.fillStyle = '#fff'; ag.font = 'bold 140px sans-serif'; ag.textAlign = 'center'; ag.textBaseline = 'middle'; ag.fillText('F', 128, 140);
