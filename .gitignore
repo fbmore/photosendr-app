@@ -1,1 +1,11 @@
 .DS_Store
+
+# Marketing capture scratch. The viewer's ?demo&pitch mode draws synthetic
+# gradients, so a capture of it never matches the real photos every other
+# beat shows. To capture the gallery honestly, drop the real photos in
+# _capshots/ and generate _capgallery.html (view.html plus a small script
+# that swaps the gradients for them), serve the folder, and shoot it
+# headless. Both are throwaway — and _capshots/ holds personal photos that
+# must never reach a public repo.
+_capshots/
+_capgallery.html
