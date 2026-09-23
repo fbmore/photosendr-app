@@ -35,7 +35,7 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 8 September 2026</p>
+  <p class="muted">Last updated: 23 September 2026</p>
 
   <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
 
@@ -51,6 +51,7 @@
     <li><strong>Your sets</strong> — the photos and videos you add to your sets are kept in the app's private storage on your device so they're still there when you come back. Deleting an item or a set in the app removes it.</li>
     <li><strong>Your defaults</strong> — the recipient list, email subject, and message you save in Settings live on your device only.</li>
     <li><strong>Saved edits</strong> — when you tap Save, the edited photo is written back to your own photo library.</li>
+    <li><strong>Your cards</strong> — a card you make from a gallery is kept on your device so you can send it again or edit it later: the design and words you chose, copies of the photos on its front (or the artwork, if you made one), a small picture of the finished front, and the gallery address its code points to. Deleting a card in the app deletes all of it. Nothing about a card is uploaded — printing, emailing and sharing a card all happen from your device, through your own apps.</li>
     <li><strong>Your share links</strong> — the list of links you've created is stored on your device so you can keep track of them and expire them: the address, the title, the expiry date, how many items went in it, which set it came from, and a few small thumbnails so the list can show you what you sent.</li>
   </ul>
   <p>The developer has no access to any of this.</p>
@@ -66,6 +67,15 @@
     <li><strong>View counts.</strong> To show you how many times a link was opened, the viewer page pings a small counter service that stores <em>only</em> a random link ID and a number — no IP addresses, no location, no cookies, nothing about the viewer or about you.</li>
     <li><strong>Downloads.</strong> The viewer's download buttons fetch files directly from Apple's iCloud. When a browser blocks that direct fetch, the bytes pass through a small relay we run on Cloudflare; it streams the file and stores nothing — no copies, no content logs.</li>
     <li><strong>Reporting.</strong> Every shared page carries a "Report this share" link that opens an email to us containing the link's address, so we can delete a reported share from iCloud. We receive only what the reporter chooses to send.</li>
+  </ul>
+
+  <h2>Card artwork with Image Playground (optional)</h2>
+  <p>On iOS 27, on devices that support Apple Intelligence, you can make a card's front picture with <strong>Image Playground</strong>, Apple's own image feature. This is entirely optional and easy to avoid: the card designs work from your photos exactly as before, the AI option appears as a separate choice you have to pick, and nothing is generated unless you ask for it. Where Image Playground isn't available, the option isn't shown at all and nothing about the app changes.</p>
+  <ul>
+    <li><strong>Apple runs it, not us.</strong> When you choose it, PhotoSendr opens Apple's own Image Playground screen and hands it the photo you picked as a starting point, plus the occasion of the card design (for example "Winter holiday card") as a suggestion you can remove. What you type there goes to Apple, not to us. Apple describes how it handles that in its own privacy policy; generation runs on your device or through Apple's Private Cloud Compute.</li>
+    <li><strong>We never see it.</strong> PhotoSendr receives only the finished picture you accept, and saves it on your device with the card. There is no PhotoSendr AI service, no API key, and no server of ours involved at any point.</li>
+    <li><strong>It stays on your device.</strong> Generated artwork is stored alongside your cards, deleted when you delete the card, and leaves your phone only inside a card you choose to send, print or share.</li>
+    <li><strong>Your photos are not used to train anything</strong> by us. We do not collect, receive, or have any access to the photos you start from or the pictures Apple makes.</li>
   </ul>
 
   <h2>Device permissions and why</h2>
@@ -84,6 +94,7 @@
     <li>No analytics, usage tracking, or advertising SDKs of any kind.</li>
     <li>No location data.</li>
     <li>Your photos, recipient addresses, and messages are never sent to the developer.</li>
+    <li>No AI service of ours, and no prompts, photos or generated pictures sent to one. The optional Image Playground feature is Apple's, runs only when you choose it, and can be ignored entirely.</li>
   </ul>
 
   <h2>Purchases</h2>
