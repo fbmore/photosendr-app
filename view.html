@@ -182,6 +182,8 @@
   .psf input[aria-invalid="true"]{border-color:#ff9d8f}
   .psfoot{padding:12px 20px 20px;border-top:1px solid var(--line)}
   .psfoot .psnote{margin:0 0 4px;font-size:13px;color:var(--muted);text-wrap:pretty}
+  .psprice{margin:2px 0 4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .psprice[hidden]{display:none}
   .psstatus{margin:0 0 4px;font-size:14px;text-wrap:pretty}
   .psstatus:empty{display:none}
   .psstatus.err{color:#ff9d8f}
@@ -328,6 +330,7 @@
   </div>
   <div class="psfoot">
     <p id="psHint" class="psnote"></p>
+    <p id="psPrice" class="psprice" hidden></p>
     <p id="psNotice" class="psnote"></p>
     <p id="psStatus" class="psstatus" role="status"></p>
     <div class="psactions">
@@ -394,6 +397,9 @@
     mailNotice:'Your photos and delivery address will be sent to Familink, our printing partner in France.',
     mailGo:'Order prints ({n})', mailPlacing:'Placing order…',
     mailDone:'Order placed. Reference {ref}.', mailSandbox:'Test mode — nothing is printed or shipped.',
+    mailPriceLine:'{n} prints · {total} including postage', mailPayGo:'Pay {total}',
+    mailPayNotice:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Familink, our printing partner in France.',
+    mailErrPayment:'Couldn’t start the payment. Try again.',
     mailErrAddress:'Please complete the delivery address.',
     mailErrLimit:'This share has reached its order limit for today.',
     mailErrFailed:'Couldn’t place the order. Try again.',
@@ -451,6 +457,9 @@
       mailNotice:'Le tue foto e l’indirizzo di consegna saranno inviati a Familink, il nostro partner di stampa in Francia.',
       mailGo:'Ordina le stampe ({n})', mailPlacing:'Invio dell’ordine…',
       mailDone:'Ordine inviato. Riferimento {ref}.', mailSandbox:'Modalità di prova — non viene stampato né spedito nulla.',
+      mailPriceLine:'{n} stampe · {total} spedizione inclusa', mailPayGo:'Paga {total}',
+      mailPayNotice:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Familink, il nostro partner di stampa in Francia.',
+      mailErrPayment:'Impossibile avviare il pagamento. Riprova.',
       mailErrAddress:'Completa l’indirizzo di consegna.',
       mailErrLimit:'Questa condivisione ha raggiunto il limite di ordini per oggi.',
       mailErrFailed:'Impossibile inviare l’ordine. Riprova.',
@@ -507,6 +516,9 @@
       mailNotice:'Vos photos et votre adresse de livraison seront envoyées à Familink, notre partenaire d’impression en France.',
       mailGo:'Commander les tirages ({n})', mailPlacing:'Envoi de la commande…',
       mailDone:'Commande envoyée. Référence {ref}.', mailSandbox:'Mode test — rien n’est imprimé ni expédié.',
+      mailPriceLine:'{n} tirages · {total} frais de port inclus', mailPayGo:'Payer {total}',
+      mailPayNotice:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Familink, notre partenaire d’impression en France.',
+      mailErrPayment:'Impossible de démarrer le paiement. Réessayez.',
       mailErrAddress:'Veuillez compléter l’adresse de livraison.',
       mailErrLimit:'Ce partage a atteint sa limite de commandes pour aujourd’hui.',
       mailErrFailed:'Impossible d’envoyer la commande. Réessayez.',
@@ -563,6 +575,9 @@
       mailNotice:'Deine Fotos und die Lieferadresse werden an Familink gesendet, unseren Druckpartner in Frankreich.',
       mailGo:'Abzüge bestellen ({n})', mailPlacing:'Bestellung wird gesendet…',
       mailDone:'Bestellung aufgegeben. Referenz {ref}.', mailSandbox:'Testmodus — es wird nichts gedruckt oder versandt.',
+      mailPriceLine:'{n} Abzüge · {total} inklusive Versand', mailPayGo:'{total} bezahlen',
+      mailPayNotice:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Familink, unseren Druckpartner in Frankreich.',
+      mailErrPayment:'Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.',
       mailErrAddress:'Bitte vervollständige die Lieferadresse.',
       mailErrLimit:'Diese Freigabe hat ihr Bestelllimit für heute erreicht.',
       mailErrFailed:'Bestellung fehlgeschlagen. Bitte erneut versuchen.',
@@ -619,6 +634,9 @@
       mailNotice:'Tus fotos y tu dirección de envío se enviarán a Familink, nuestro socio de impresión en Francia.',
       mailGo:'Pedir copias ({n})', mailPlacing:'Enviando el pedido…',
       mailDone:'Pedido realizado. Referencia {ref}.', mailSandbox:'Modo de prueba — no se imprime ni se envía nada.',
+      mailPriceLine:'{n} copias · {total} con envío incluido', mailPayGo:'Pagar {total}',
+      mailPayNotice:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Familink, nuestro socio de impresión en Francia.',
+      mailErrPayment:'No se pudo iniciar el pago. Inténtalo de nuevo.',
       mailErrAddress:'Completa la dirección de envío.',
       mailErrLimit:'Este enlace ha alcanzado su límite de pedidos por hoy.',
       mailErrFailed:'No se pudo realizar el pedido. Inténtalo de nuevo.',
@@ -1816,6 +1834,7 @@
   // (a mock page until the Walgreens key exists). ?api=staging points at the
   // staging worker; production has no /print route yet, so the eligibility
   // check fails there and the button never appears.
+  var PAY = { on: false, price: null };
   var PRINT_API = /[?&]api=staging(&|$)/.test(location.search)
     ? 'https://photosendr-views-staging.fbmore.workers.dev'
     : 'https://photosendr-views.fbmore.workers.dev';
@@ -1833,7 +1852,7 @@
         // Walgreens is US pickup; Familink mails anywhere. A visitor can see
         // both, one, or neither.
         if(d.walgreens) add('walgreens', STR.print, 'printer');
-        if(d.familink) add('familink', STR.mail, 'mail', d.country);
+        if(d.familink){ PAY = { on: !!d.paid, price: d.price }; add('familink', STR.mail, 'mail', d.country); }
         function add(mode, label, ico, country){
           var b = document.createElement('button');
           b.className = 'dl ghost';
@@ -1849,7 +1868,7 @@
   var ps = document.getElementById('ps'), psList = document.getElementById('psList'),
       psCount = document.getElementById('psCount'), psAll = document.getElementById('psAll'),
       psGo = document.getElementById('psGo'), psStatus = document.getElementById('psStatus');
-  var psAddr = document.getElementById('psAddr');
+  var psAddr = document.getElementById('psAddr'), psPrice = document.getElementById('psPrice');
   var P = { photos: [], busy: false, checkoutUrl: '', mode: 'walgreens', done: false };
   var ADDR_LABELS = { first_name:'addrFirst', last_name:'addrLast', address_1:'addrLine1', address_2:'addrLine2',
                       city:'addrCity', postal_or_zip_code:'addrPost', state:'addrState', country_code:'addrCountry',
@@ -1881,6 +1900,11 @@
     [['matte','fmtMatte'],['glossy','fmtGlossy']].forEach(function(o){ fin.appendChild(new Option(STR[o[1]], o[0])); });
   })();
 
+  function psTotal(n){
+    var p = PAY.price, cents = n * p.unitCents + p.shipCents;
+    return new Intl.NumberFormat(LANG, { style: 'currency', currency: p.currency.toUpperCase() }).format(cents / 100);
+  }
+
   // The printed size decides the crop and which photos are too small for it.
   function psSizeChanged(){
     var fmtSel = psAddr.querySelector('[name=format]');
@@ -1902,8 +1926,13 @@
     psCount.textContent = t('printCount', { n: n, total: boxes.length });
     psAll.textContent = n === boxes.length ? STR.printSelectNone : STR.printSelectAll;
     P.checkoutUrl = '';
+    if(P.mode === 'familink' && PAY.on && PAY.price){
+      psPrice.textContent = n ? t('mailPriceLine', { n: n * (P.copies || 1), total: psTotal(n) }) : '';
+    }
     if(!P.busy && !P.done){
-      psGo.textContent = t(P.mode === 'familink' ? 'mailGo' : 'printContinue', { n: n });
+      psGo.textContent = P.mode !== 'familink' ? t('printContinue', { n: n })
+        : (PAY.on && PAY.price && n) ? t('mailPayGo', { total: psTotal(n) })
+        : t('mailGo', { n: n });
       psGo.disabled = n === 0;
     }
   }
@@ -1937,7 +1966,11 @@
     document.getElementById('psTitle').textContent = mail ? STR.mail : STR.print;
     document.getElementById('psSub').textContent = mail ? STR.mailSub : STR.printSub;
     document.getElementById('psNotice').textContent = mail ? STR.mailNotice : STR.printNotice;
-    psAddr.hidden = !mail;
+    // Paying means Stripe collects the address, so the form is only for the
+    // unpaid sandbox path.
+    psAddr.hidden = !mail || PAY.on;
+    psPrice.hidden = !(mail && PAY.on);
+    if(mail && PAY.on) document.getElementById('psNotice').textContent = STR.mailPayNotice;
     psSizeChanged();
     // Opening the sheet is the "tap" half of the tap-to-order rate; the worker
     // counts it per day, with nothing about who opened it.
@@ -1998,8 +2031,13 @@
   }
 
   function orderByMail(idx){
-    var a = addressOrNull();
-    if(!a){ psError(STR.mailErrAddress); return; }
+    var a = null;
+    if(!PAY.on){
+      a = addressOrNull();
+      if(!a){ psError(STR.mailErrAddress); return; }
+    } else {
+      a = { format: psAddr.elements.format.value, finish: psAddr.elements.finish.value };
+    }
     psBusy(true, STR.mailPlacing);
     fetch(PRINT_API + '/print/familink', {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -2008,6 +2046,10 @@
     }).then(function(r){ return r.json().then(function(d){ return { status: r.status, d: d }; }); })
       .then(function(res){
         psBusy(false);
+        if(res.status === 200 && res.d.ok && res.d.checkoutUrl){
+          location.assign(res.d.checkoutUrl);   // pay first; the order follows
+          return;
+        }
         if(res.status === 200 && res.d.ok){
           // Nothing to redirect to: the order is placed, so the sheet says so.
           P.done = true;
@@ -2018,7 +2060,8 @@
           psGo.onclick = function(){ ps.close(); };
           return;
         }
-        psError(res.status === 429 ? STR.mailErrLimit
+        psError(res.status === 502 ? STR.mailErrPayment
+              : res.status === 429 ? STR.mailErrLimit
               : res.status === 410 || res.status === 404 ? STR.printErrExpired
               : res.status === 400 && res.d.missing ? STR.mailErrAddress
               : STR.mailErrFailed);
