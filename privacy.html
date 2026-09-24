@@ -39,7 +39,7 @@
 
   <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
 
-  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. The only things that ever leave your device are shares you start yourself.</p>
+  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. Things leave your device only when you send them — or, on a share page, when someone you gave the link to orders prints of the photos you shared.</p>
 
   <hr>
 
@@ -57,7 +57,7 @@
   <p>The developer has no access to any of this.</p>
 
   <h2>How sending works</h2>
-  <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send.</p>
+  <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send. (Ordering prints from a share page is the one exception, and only when someone taps Print and confirms — see <a href="#prints">Ordering prints</a>.)</p>
 
   <h2>iCloud share links (Pro)</h2>
   <p>When you create a share link, what you're sharing is uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address: the photos, videos and files in the current set, or the PDF when you're sending one, plus a small cover image the app makes from the first item so the link shows a picture when you paste it somewhere. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
@@ -76,6 +76,13 @@
     <li><strong>We never see it.</strong> PhotoSendr receives only the finished picture you accept, and saves it on your device with the card. There is no PhotoSendr AI service, no API key, and no server of ours involved at any point.</li>
     <li><strong>It stays on your device.</strong> Generated artwork is stored alongside your cards, deleted when you delete the card, and leaves your phone only inside a card you choose to send, print or share.</li>
     <li><strong>Your photos are not used to train anything</strong> by us. We do not collect, receive, or have any access to the photos you start from or the pictures Apple makes.</li>
+  <h2 id="prints">Ordering prints</h2>
+  <p>A share page can offer prints of the photos in it. Anyone holding the link can order — that is the point, so a grandparent can get prints without installing anything — which also means <strong>anyone you give a link to can order prints of what you shared</strong>. Nothing is sent until they choose photos and confirm on a screen that says where the photos are going.</p>
+  <ul>
+    <li><strong>Pickup prints (Walgreens, US).</strong> Copies of the chosen photos are sent to Walgreens, who print them and handle store choice, price and payment on their own checkout. Walgreens' own privacy policy applies to that order. We pass the photos through and keep no copy.</li>
+    <li><strong>What we keep.</strong> For each order: which link it came from, how many photos, the print size, the delivery country, and whether it succeeded — kept for 90 days so we can answer questions about an order. No names, no addresses, no photos.</li>
+    <li><strong>Counts.</strong> We count, per day, how many people opened the print screen and how many orders started. Totals only: nothing about who, and nothing joined to a person or a link.</li>
+    <li><strong>Payment.</strong> Print orders are paid on the partner's own checkout. We never see card details.</li>
   </ul>
 
   <h2>Device permissions and why</h2>
@@ -91,9 +98,9 @@
   <h2>What we do <em>not</em> collect</h2>
   <ul>
     <li>No account, sign-in, name, email, or phone number is required or collected.</li>
-    <li>No analytics, usage tracking, or advertising SDKs of any kind.</li>
+    <li>No analytics, usage tracking, or advertising SDKs of any kind. The only numbers we keep are per-link view counts and per-day print totals, described above.</li>
     <li>No location data.</li>
-    <li>Your photos, recipient addresses, and messages are never sent to the developer.</li>
+    <li>Your photos, recipient addresses, and messages are never sent to the developer. The one time photos reach a company other than Apple is a print order somebody places from a share page, and then they go to the print partner, not to us.</li>
     <li>No AI service of ours, and no prompts, photos or generated pictures sent to one. The optional Image Playground feature is Apple's, runs only when you choose it, and can be ignored entirely.</li>
   </ul>
 
