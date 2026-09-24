@@ -1938,6 +1938,12 @@
     document.getElementById('psNotice').textContent = mail ? STR.mailNotice : STR.printNotice;
     psAddr.hidden = !mail;
     psSizeChanged();
+    // Opening the sheet is the "tap" half of the tap-to-order rate; the worker
+    // counts it per day, with nothing about who opened it.
+    if(!DEMO){
+      try { fetch(PRINT_API + '/print/tap', { method: 'POST', headers: { 'content-type': 'application/json' },
+                                              body: JSON.stringify({ provider: P.mode }) }); } catch(e){}
+    }
     if(mail && country && !psAddr.elements.country_code.value) psAddr.elements.country_code.value = country;
     psStatus.textContent = ''; psStatus.className = 'psstatus';
     psList.innerHTML = '';
