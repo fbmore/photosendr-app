@@ -781,6 +781,16 @@
     var html = '<h1></h1><div class="meta"></div>' +
                ((senderName || message) ? '<div class="from"><span class="avatar" aria-hidden="true"></span><div><div class="fromname"></div><p class="note"></p></div></div>' : '') +
                '<div class="dlrow"></div><div class="grid">';
+    // thumbs[] + thumbFor[]: a small copy per photo, keyed by item index.
+    // Optional — records made before the app wrote them simply have none.
+    var thumbList = (f.thumbs && f.thumbs.value) || [];
+    var thumbForList = (f.thumbFor && f.thumbFor.value) || [];
+    var thumbBy = {};
+    thumbList.forEach(function(t, k){
+      var n = parseInt(thumbForList[k], 10);
+      if(!isNaN(n)) thumbBy[n] = t;
+    });
+
     items.forEach(function(it, i){
       var type = types[i] || 'photo';
       // Anything this build doesn't recognise becomes a downloadable file
@@ -797,6 +807,12 @@
                        : isAudio ? 'audio-'+(i+1)+'.m4a'
                        : (isVideo ? 'video-' : 'photo-')+(i+1)+(isVideo ? '.mp4' : '.jpg'));
       var url = (it.downloadURL || (it.value && it.value.downloadURL) || '').replace('${f}', encodeURIComponent(name));
+      // Tile-sized copy when the app wrote one (~40 KB against ~1.5 MB). The
+      // viewer, downloads and the zip always use the full asset.
+      var thumbURL = thumbBy[i]
+        ? ((thumbBy[i].downloadURL || (thumbBy[i].value && thumbBy[i].value.downloadURL) || '')
+            .replace('${f}', encodeURIComponent('t-' + name)))
+        : '';
       // The label element only ever shows a real, user-set name (`given`) —
       // never `name`'s generated fallback ("file-3", "audio-2.m4a", an
       // UUID-derived filename). An unnamed item just shows no label; a
@@ -849,7 +865,7 @@
         photoEntries.push({ url: url, name: name, label: given, index: i });
         viewables.push({ url: url, type: 'photo', name: name, index: i });
         html += '<button type="button" class="tile" data-v="'+(viewables.length-1)+'" aria-haspopup="dialog">'+
-                '<img src="'+url+'" alt="'+esc(given || ('Photo '+(i+1)))+'" loading="lazy">'+
+                '<img src="'+(thumbURL || url)+'" alt="'+esc(given || ('Photo '+(i+1)))+'" loading="lazy" decoding="async">'+
                 '<span class="tag" hidden data-tag="'+(photoEntries.length-1)+'"></span></button>';
       }
     });
