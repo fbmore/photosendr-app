@@ -1856,9 +1856,12 @@
   // staging worker; production has no /print route yet, so the eligibility
   // check fails there and the button never appears.
   var PAY = { on: false, price: null };
+  // Same origin on the live site (photosendr.com/print/* is the worker), so
+  // no CORS and the buyer never sees a workers.dev address. ?api=staging
+  // points a local copy at staging.
   var PRINT_API = /[?&]api=staging(&|$)/.test(location.search)
     ? 'https://photosendr-views-staging.fbmore.workers.dev'
-    : 'https://photosendr-views.fbmore.workers.dev';
+    : (location.hostname === 'photosendr.com' ? '' : 'https://photosendr.com');
   // 4x6 at 150 dpi: below this on the crop's short side a print looks soft.
   var PRINT_MIN_SHORT_PX = 600;
   // Long side / short side of each printed size. 4x6 in and 10x15 cm are both 3:2.
