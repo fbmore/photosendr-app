@@ -1009,8 +1009,18 @@
       if(vi >= 0) openAt(vi, { deep: true });
     }
 
-    // Count the view (anonymous: stores only link-id -> integer)
-    if(!DEMO){ try { fetch('https://photosendr-views.fbmore.workers.dev/hit/'+encodeURIComponent(recordName)); } catch(err) {} }
+    // Count the view (anonymous: stores only link-id -> integer). A ?t= on
+    // the address means this copy of the link was made for one recipient;
+    // it is an opaque id, and the private label the sender gave it stays on
+    // their device. Passing it on counts the open against that copy as well
+    // as against the gallery.
+    if(!DEMO){
+      var tid = (new URLSearchParams(location.search).get('t') || '').match(/^[A-Za-z0-9]{3,24}$/);
+      try {
+        fetch('https://photosendr-views.fbmore.workers.dev/hit/' + encodeURIComponent(recordName) +
+              (tid ? '?t=' + tid[0] : ''));
+      } catch(err) {}
+    }
   }
 
   // Attributes built by string concatenation into innerHTML (aria-label,
