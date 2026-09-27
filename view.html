@@ -342,13 +342,10 @@
 
 <script>
 (function(){
-  // CloudKit Web Services REST — tried in order. Release builds write to
-  // Production; Debug builds write to Development.
-  var CONTAINER = 'iCloud.com.fbmore.PhotoSendrV2';
-  var ENVS = [
-    { env: 'production',  token: '5e4c16bb43b9ec8f65903d02700e786d16892140d93643c6f2c8fff157c05c59' },
-    { env: 'development', token: '4280390a9b9e3e0c65dfa221866d105ed6c249c84e7004cfc93080a1c3c0b783' }
-  ].filter(function(e){ return e.token.indexOf('REPLACE') !== 0; });
+  // The worker reads the one share this link names, with its server key
+  // (production first, then development). The page holds no CloudKit token:
+  // the public API can't read or list shares.
+  var SHARE_API = 'https://photosendr-views.fbmore.workers.dev/set/';
 
   // Viewer strings. English is the base; the visitor's browser language picks
   // an override dictionary (it/fr/de/es), falling back to English per key.
@@ -734,20 +731,15 @@
   }
 
   if(!recordName){ state(STR.missingId); return; }
-  if(!ENVS.length && !DEMO){ state('Viewer not configured yet.'); return; }
 
-  function lookup(i){
-    if(i >= ENVS.length){
-      state(STR.expiredOr);
-      return;
-    }
-    var e = ENVS[i];
-    fetch('https://api.apple-cloudkit.com/database/1/'+CONTAINER+'/'+e.env+'/public/records/lookup?ckAPIToken='+e.token, {
-      method: 'POST',
-      body: JSON.stringify({ records: [{ recordName: recordName }] })
-    }).then(function(r){ return r.json(); }).then(function(resp){
-      var rec = resp.records && resp.records[0];
-      if(!rec || rec.serverErrorCode || !rec.fields){ lookup(i+1); return; }
+  function lookup(){
+    fetch(SHARE_API + encodeURIComponent(recordName), { cache: 'no-store' })
+    .then(function(r){
+      if(r.status === 404) return null;
+      if(!r.ok) throw new Error('set ' + r.status);
+      return r.json();
+    }).then(function(rec){
+      if(!rec || !rec.fields){ state(STR.expiredOr); return; }
       // Render separately: a bug in rendering is not a missing record, and
       // must not be reported to the viewer as an expired link.
       try { render(rec); }
@@ -755,7 +747,7 @@
         console.error('render failed', err);
         state(STR.renderError);
       }
-    }).catch(function(){ lookup(i+1); });
+    }).catch(function(){ state(STR.renderError); });
   }
 
   function render(rec){
