@@ -206,7 +206,12 @@
     transition:opacity var(--fade,0ms) ease}
   .lbimg.on{opacity:1}
   .lbvideo{position:absolute;inset:0;width:100%;height:100%;background:#000}
-  .lb.isvideo .lbvideo{bottom:calc(84px + env(safe-area-inset-bottom));height:auto}
+  /* A video gets its own band between the two bars. `bottom` + height:auto
+     doesn't stretch a replaced element — the box took the video's own
+     height, so a portrait clip ran under both bars and iOS drew its native
+     controls (fullscreen, PiP, mute, scrubber) beneath ours. */
+  .lb.isvideo .lbvideo{--vtop:calc(68px + env(safe-area-inset-top));--vbot:calc(84px + env(safe-area-inset-bottom));
+    top:var(--vtop);height:calc(100% - var(--vtop) - var(--vbot))}
   .lberr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     color:var(--muted);font-size:17px;padding:20px;text-align:center}
   .lbdoc{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
@@ -831,16 +836,22 @@
                 '<button class="vdl pdfdl" data-f="'+fileEntries.length+'"></button></div>';
         fileEntries.push({ url: url, name: name, label: given });
       } else if(isVideo){
-        // #t=0.001 makes Safari (and friends) paint the first frame as a
-        // poster instead of leaving the tile black. The tile opens the
-        // viewer, where the video plays with native controls.
+        // The cover the sender picked arrives as the video's thumbnail (app
+        // 5.8+) and is the poster, here and in the viewer. Without one,
+        // #t=0.001 makes Safari (and friends) paint the first frame instead
+        // of leaving the tile black. The tile opens the viewer, where the
+        // video plays with native controls.
+        var poster = it.poster || (thumbBy[i]
+          ? (thumbBy[i].downloadURL || (thumbBy[i].value && thumbBy[i].value.downloadURL) || '')
+              .replace('${f}', encodeURIComponent('cover-' + name.replace(/\.[^.]*$/, '') + '.jpg'))
+          : '');
         html += '<div class="vid"><button type="button" class="tile" data-v="'+viewables.length+'" aria-haspopup="dialog" aria-label="'+esc(t('videoN',{n:i+1})+(given ? ', '+given : ''))+'">'+
-                '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"'+(it.poster ? ' poster="'+it.poster+'"' : '')+' src="'+url+(it.poster ? '' : '#t=0.001')+'"></video>'+
+                '<video muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"'+(poster ? ' poster="'+poster+'"' : '')+' src="'+url+(poster ? '' : '#t=0.001')+'"></video>'+
                 '<span class="tag" hidden data-tag="'+videoEntries.length+'"></span>'+
                 '<span class="badge" aria-hidden="true">▶</span></button>'+
                 '<button class="vdl" data-i="'+videoEntries.length+'">'+STR.downloadVideo+'</button></div>';
         videoEntries.push({ url: url, name: name, label: given });
-        viewables.push({ url: url, type: 'video', name: name, index: i });
+        viewables.push({ url: url, type: 'video', name: name, index: i, poster: poster });
       } else if(isAudio){
         // Not a viewable (no lightbox entry) — same call as the file tile
         // above: the native <audio controls> element IS the player, a
@@ -1421,7 +1432,8 @@
       lbProg.hidden = true;
       lbVideo.hidden = false;
       lbVideo.muted = false;
-      lbVideo.src = it.url + '#t=0.001';
+      lbVideo.poster = it.poster || '';
+      lbVideo.src = it.url + (it.poster ? '' : '#t=0.001');
       if(S.playing) playVideoForShow(tok);
       return;
     }
