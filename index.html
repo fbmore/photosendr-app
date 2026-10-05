@@ -146,6 +146,7 @@
     background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
     opacity:0;transform:translateY(10px);animation:up 5.6s ease-in-out infinite}
   .imp .row svg{width:20px;height:20px;opacity:.92;flex:0 0 auto}
+  .imp .row .n{margin-left:auto;padding-left:10px;color:var(--muted2);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
   .imp .row:nth-child(1){animation-delay:0s}.imp .row:nth-child(2){animation-delay:.16s}.imp .row:nth-child(3){animation-delay:.32s}
   @keyframes up{0%{opacity:0;transform:translateY(10px)}12%,90%{opacity:1;transform:none}100%{opacity:1}}
   .prefilled{margin-top:22px;display:inline-flex;gap:7px;align-items:center;color:#fff;font-size:13px;font-weight:500;
@@ -273,7 +274,7 @@ in a tap — by email, a web gallery, or a card.</p>
       <h2>Multiple slots. One send.</h2>
       <p>Fill the grid from your camera, your photo library, or Files — a whole batch at a time. Starting empty? A welcome screen offers one big slot and a quick-pick button for your latest shots. Receipts for the bookkeeper, job-site photos for the contractor, kid pictures for the grandparents — batched and gone in seconds. Three sets of ten items free; with Pro the grid grows as you add.</p>
       <ul class="bul">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap shot after shot — real .5×–4× zoom, flash &amp; flip, tray fills as you go</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cam"/></svg>Snap shot after shot — pinch to zoom from .5× to 4×, flash &amp; flip, front camera zooms too</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-photo"/></svg>Or pick several from your library at once</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-check"/></svg>Add any file from Files — or paste from the clipboard</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cell"/></svg>Drag to reorder — slot order is the send order</li>
@@ -475,6 +476,34 @@ in a tap — by email, a web gallery, or a card.</p>
       </div>
       <img src="shot-viewer.png" alt="A shared PhotoSendr link open in a desktop browser: photo grid, video, Slideshow and Download all photos buttons" loading="lazy">
     </div>
+  </div>
+</section>
+
+<!-- 8b · COPY LINK + TRACKING LINKS -->
+<section class="feat">
+  <div class="wrap">
+    <div class="copy">
+      <h2>Copy the link — or one each</h2>
+      <p>Tap Copy share link and the address is on your clipboard, ready to paste wherever you were already typing — if the set hasn't been published yet, it publishes first. You can also make a link per person: the same gallery at a slightly different address, named privately on your iPhone, so you can see whose copy was opened — and nobody who receives one ever sees that name.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Publishes first if it has to, then copies</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>A view count per person, names kept on your phone</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-doc"/></svg>One gallery, one expiry — expire it once and every link stops</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-cell"/></svg>Or send another way: AirDrop and Files take the full-size files, Messages takes the link</li>
+      </ul>
+    </div>
+    <div class="phone"><div class="notch"></div><div class="screen">
+      <div class="st"><span>9:41</span><svg viewBox="0 0 34 12" fill="#fff"><rect x="0" y="3" width="4" height="6" rx="1"/><rect x="6" y="1" width="4" height="10" rx="1"/><rect x="20" y="1" width="12" height="7" rx="2"/></svg></div>
+      <div class="body">
+        <div class="obTitle">A link each,<br>a count each</div>
+        <div class="imp">
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Mum<span class="n">4 views</span></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Book club<span class="n">12 views</span></div>
+          <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Luca<span class="n">no views yet</span></div>
+        </div>
+        <div class="prefilled"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>Link copied</div>
+      </div>
+    </div></div>
   </div>
 </section>
 
