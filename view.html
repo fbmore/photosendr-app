@@ -182,6 +182,16 @@
   .psf input[aria-invalid="true"]{border-color:#ff9d8f}
   .psfoot{padding:12px 20px 20px;border-top:1px solid var(--line)}
   .psfoot .psnote{margin:0 0 4px;font-size:13px;color:var(--muted);text-wrap:pretty}
+  .psfinish{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;padding:0;border:0}
+  .psfinish[hidden]{display:none}
+  .psfinish legend{float:left;padding:0;font-size:14px;color:var(--muted)}
+  .psseg{display:inline-flex;padding:3px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+  .psseg label{position:relative;display:flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;
+    padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;
+    transition-property:background-color,color;transition-duration:150ms;transition-timing-function:cubic-bezier(0.2,0,0,1)}
+  .psseg input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
+  .psseg label:has(input:checked){background:#fff;color:#000}
+  .psseg label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
   .psprice{margin:2px 0 4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
   .psprice[hidden]{display:none}
   .psstatus{margin:0 0 4px;font-size:14px;text-wrap:pretty}
@@ -339,6 +349,13 @@
   </div>
   <div class="psfoot">
     <p id="psHint" class="psnote"></p>
+    <fieldset id="psFinish" class="psfinish" hidden>
+      <legend id="psFinishLegend"></legend>
+      <div class="psseg">
+        <label><input type="radio" name="psfin" value="glossy"><span></span></label>
+        <label><input type="radio" name="psfin" value="matte" checked><span></span></label>
+      </div>
+    </fieldset>
     <p id="psPrice" class="psprice" hidden></p>
     <p id="psNotice" class="psnote"></p>
     <p id="psStatus" class="psstatus" role="status"></p>
@@ -1930,6 +1947,7 @@
       psCount = document.getElementById('psCount'), psAll = document.getElementById('psAll'),
       psGo = document.getElementById('psGo'), psStatus = document.getElementById('psStatus');
   var psAddr = document.getElementById('psAddr'), psPrice = document.getElementById('psPrice');
+  var psFinish = document.getElementById('psFinish');
   var P = { photos: [], busy: false, checkoutUrl: '', mode: 'walgreens', done: false };
   var ADDR_LABELS = { first_name:'addrFirst', last_name:'addrLast', address_1:'addrLine1', address_2:'addrLine2',
                       city:'addrCity', postal_or_zip_code:'addrPost', state:'addrState', country_code:'addrCountry',
@@ -1957,6 +1975,10 @@
       fmt.appendChild(new Option(STR[o[1]], o[0]));
     });
     fmt.addEventListener('change', psSizeChanged);
+    document.getElementById('psFinishLegend').textContent = STR.fmtFinish;
+    Array.prototype.forEach.call(psFinish.querySelectorAll('label'), function(l){
+      l.querySelector('span').textContent = l.querySelector('input').value === 'glossy' ? STR.fmtGlossy : STR.fmtMatte;
+    });
     var fin = psAddr.querySelector('[name=finish]');
     [['matte','fmtMatte'],['glossy','fmtGlossy']].forEach(function(o){ fin.appendChild(new Option(STR[o[1]], o[0])); });
   })();
@@ -2036,6 +2058,9 @@
     // unpaid sandbox path.
     psAddr.hidden = !mail || PAY.on;
     psPrice.hidden = !(mail && PAY.on);
+    // With payment on the address form (and its finish select) is hidden, so
+    // the finish is chosen here. Matte is Prodigi's lustre; see print.js.
+    psFinish.hidden = !(mail && PAY.on);
     if(mail && PAY.on){
       var notice = pd ? STR.mailPayNoticePD : STR.mailPayNotice;
       // Familink prints in France, Prodigi at the lab nearest the buyer.
@@ -2107,7 +2132,8 @@
       a = addressOrNull();
       if(!a){ psError(STR.mailErrAddress); return; }
     } else {
-      a = { format: psAddr.elements.format.value, finish: psAddr.elements.finish.value };
+      var picked = psFinish.querySelector('input:checked');
+      a = { format: psAddr.elements.format.value, finish: picked ? picked.value : 'matte' };
     }
     psBusy(true, STR.mailPlacing);
     fetch(PRINT_API + '/print/order' + printAs(), {
