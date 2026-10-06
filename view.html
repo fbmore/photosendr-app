@@ -405,6 +405,8 @@
     mailDone:'Order placed. Reference {ref}.', mailSandbox:'Test mode — nothing is printed or shipped.',
     mailPriceLine:'{n} prints · {total} including postage', mailPayGo:'Pay {total}',
     mailPriceLineTax:'{n} prints · {total} including postage, plus sales tax where it applies', mailPayGoTax:'Continue to payment',
+    mailSubPD:'4x6 (10x15 cm) prints, mailed to you within the US.', mailNoticePD:'Your photos and delivery address will be sent to Prodigi, our printing partner.',
+    mailPayNoticePD:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Prodigi, our printing partner.',
     mailFromUS:'Printed and posted from a US lab.', mailFromFR:'Printed and posted from France.',
     mailPayNotice:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Familink, our printing partner in France.',
     mailErrPayment:'Couldn’t start the payment. Try again.',
@@ -467,6 +469,8 @@
       mailDone:'Ordine inviato. Riferimento {ref}.', mailSandbox:'Modalità di prova — non viene stampato né spedito nulla.',
       mailPriceLine:'{n} stampe · {total} spedizione inclusa', mailPayGo:'Paga {total}',
       mailPriceLineTax:'{n} stampe · {total} spedizione inclusa, più l’imposta sulle vendite dove prevista', mailPayGoTax:'Continua al pagamento',
+      mailSubPD:'Stampe 4x6 (10x15 cm) spedite a te negli Stati Uniti.', mailNoticePD:'Le tue foto e l’indirizzo di consegna saranno inviati a Prodigi, il nostro partner di stampa.',
+      mailPayNoticePD:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Prodigi, il nostro partner di stampa.',
       mailFromUS:'Stampate e spedite da un laboratorio negli Stati Uniti.', mailFromFR:'Stampate e spedite dalla Francia.',
       mailPayNotice:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Familink, il nostro partner di stampa in Francia.',
       mailErrPayment:'Impossibile avviare il pagamento. Riprova.',
@@ -528,6 +532,8 @@
       mailDone:'Commande envoyée. Référence {ref}.', mailSandbox:'Mode test — rien n’est imprimé ni expédié.',
       mailPriceLine:'{n} tirages · {total} frais de port inclus', mailPayGo:'Payer {total}',
       mailPriceLineTax:'{n} tirages · {total} frais de port inclus, plus la taxe de vente le cas échéant', mailPayGoTax:'Continuer vers le paiement',
+      mailSubPD:'Tirages 4x6 (10x15 cm) expédiés chez vous aux États-Unis.', mailNoticePD:'Vos photos et votre adresse de livraison seront envoyées à Prodigi, notre partenaire d’impression.',
+      mailPayNoticePD:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Prodigi, notre partenaire d’impression.',
       mailFromUS:'Imprimés et expédiés depuis un laboratoire aux États-Unis.', mailFromFR:'Imprimés et expédiés depuis la France.',
       mailPayNotice:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Familink, notre partenaire d’impression en France.',
       mailErrPayment:'Impossible de démarrer le paiement. Réessayez.',
@@ -589,6 +595,8 @@
       mailDone:'Bestellung aufgegeben. Referenz {ref}.', mailSandbox:'Testmodus — es wird nichts gedruckt oder versandt.',
       mailPriceLine:'{n} Abzüge · {total} inklusive Versand', mailPayGo:'{total} bezahlen',
       mailPriceLineTax:'{n} Abzüge · {total} inklusive Versand, zuzüglich Umsatzsteuer, wo sie anfällt', mailPayGoTax:'Weiter zur Zahlung',
+      mailSubPD:'4x6-Abzüge (10x15 cm), per Post zu dir innerhalb der USA.', mailNoticePD:'Deine Fotos und die Lieferadresse werden an Prodigi gesendet, unseren Druckpartner.',
+      mailPayNoticePD:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Prodigi, unseren Druckpartner.',
       mailFromUS:'Gedruckt und versandt aus einem Labor in den USA.', mailFromFR:'Gedruckt und versandt aus Frankreich.',
       mailPayNotice:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Familink, unseren Druckpartner in Frankreich.',
       mailErrPayment:'Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.',
@@ -650,6 +658,8 @@
       mailDone:'Pedido realizado. Referencia {ref}.', mailSandbox:'Modo de prueba — no se imprime ni se envía nada.',
       mailPriceLine:'{n} copias · {total} con envío incluido', mailPayGo:'Pagar {total}',
       mailPriceLineTax:'{n} copias · {total} con envío incluido, más el impuesto sobre las ventas donde corresponda', mailPayGoTax:'Continuar al pago',
+      mailSubPD:'Copias de 4x6 (10x15 cm) enviadas a tu dirección en EE. UU.', mailNoticePD:'Tus fotos y tu dirección de envío se enviarán a Prodigi, nuestro socio de impresión.',
+      mailPayNoticePD:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Prodigi, nuestro socio de impresión.',
       mailFromUS:'Impresas y enviadas desde un laboratorio en EE. UU.', mailFromFR:'Impresas y enviadas desde Francia.',
       mailPayNotice:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Familink, nuestro socio de impresión en Francia.',
       mailErrPayment:'No se pudo iniciar el pago. Inténtalo de nuevo.',
@@ -2017,14 +2027,17 @@
     psGo.onclick = null;   // cleared: a finished mail order turns Continue into Close
     var mail = P.mode === 'familink';
     document.getElementById('psTitle').textContent = mail ? STR.mail : STR.print;
-    document.getElementById('psSub').textContent = mail ? STR.mailSub : STR.printSub;
-    document.getElementById('psNotice').textContent = mail ? STR.mailNotice : STR.printNotice;
+    // Familink copy names France; Prodigi prints US orders at a US lab, so
+    // a US buyer is never told their photos go abroad.
+    var pd = PAY.provider === 'prodigi';
+    document.getElementById('psSub').textContent = mail ? (pd ? STR.mailSubPD : STR.mailSub) : STR.printSub;
+    document.getElementById('psNotice').textContent = mail ? (pd ? STR.mailNoticePD : STR.mailNotice) : STR.printNotice;
     // Paying means Stripe collects the address, so the form is only for the
     // unpaid sandbox path.
     psAddr.hidden = !mail || PAY.on;
     psPrice.hidden = !(mail && PAY.on);
     if(mail && PAY.on){
-      var notice = STR.mailPayNotice;
+      var notice = pd ? STR.mailPayNoticePD : STR.mailPayNotice;
       // Familink prints in France, Prodigi at the lab nearest the buyer.
       notice += ' ' + (PAY.provider === 'familink' ? STR.mailFromFR : STR.mailFromUS);
       document.getElementById('psNotice').textContent = notice;
