@@ -404,6 +404,7 @@
     mailGo:'Order prints ({n})', mailPlacing:'Placing order…',
     mailDone:'Order placed. Reference {ref}.', mailSandbox:'Test mode — nothing is printed or shipped.',
     mailPriceLine:'{n} prints · {total} including postage', mailPayGo:'Pay {total}',
+    mailPriceLineTax:'{n} prints · {total} including postage, plus sales tax where it applies', mailPayGoTax:'Continue to payment',
     mailFromUS:'Printed and posted from a US lab.', mailFromFR:'Printed and posted from France.',
     mailPayNotice:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Familink, our printing partner in France.',
     mailErrPayment:'Couldn’t start the payment. Try again.',
@@ -465,6 +466,7 @@
       mailGo:'Ordina le stampe ({n})', mailPlacing:'Invio dell’ordine…',
       mailDone:'Ordine inviato. Riferimento {ref}.', mailSandbox:'Modalità di prova — non viene stampato né spedito nulla.',
       mailPriceLine:'{n} stampe · {total} spedizione inclusa', mailPayGo:'Paga {total}',
+      mailPriceLineTax:'{n} stampe · {total} spedizione inclusa, più l’imposta sulle vendite dove prevista', mailPayGoTax:'Continua al pagamento',
       mailFromUS:'Stampate e spedite da un laboratorio negli Stati Uniti.', mailFromFR:'Stampate e spedite dalla Francia.',
       mailPayNotice:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Familink, il nostro partner di stampa in Francia.',
       mailErrPayment:'Impossibile avviare il pagamento. Riprova.',
@@ -525,6 +527,7 @@
       mailGo:'Commander les tirages ({n})', mailPlacing:'Envoi de la commande…',
       mailDone:'Commande envoyée. Référence {ref}.', mailSandbox:'Mode test — rien n’est imprimé ni expédié.',
       mailPriceLine:'{n} tirages · {total} frais de port inclus', mailPayGo:'Payer {total}',
+      mailPriceLineTax:'{n} tirages · {total} frais de port inclus, plus la taxe de vente le cas échéant', mailPayGoTax:'Continuer vers le paiement',
       mailFromUS:'Imprimés et expédiés depuis un laboratoire aux États-Unis.', mailFromFR:'Imprimés et expédiés depuis la France.',
       mailPayNotice:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Familink, notre partenaire d’impression en France.',
       mailErrPayment:'Impossible de démarrer le paiement. Réessayez.',
@@ -585,6 +588,7 @@
       mailGo:'Abzüge bestellen ({n})', mailPlacing:'Bestellung wird gesendet…',
       mailDone:'Bestellung aufgegeben. Referenz {ref}.', mailSandbox:'Testmodus — es wird nichts gedruckt oder versandt.',
       mailPriceLine:'{n} Abzüge · {total} inklusive Versand', mailPayGo:'{total} bezahlen',
+      mailPriceLineTax:'{n} Abzüge · {total} inklusive Versand, zuzüglich Umsatzsteuer, wo sie anfällt', mailPayGoTax:'Weiter zur Zahlung',
       mailFromUS:'Gedruckt und versandt aus einem Labor in den USA.', mailFromFR:'Gedruckt und versandt aus Frankreich.',
       mailPayNotice:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Familink, unseren Druckpartner in Frankreich.',
       mailErrPayment:'Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.',
@@ -645,6 +649,7 @@
       mailGo:'Pedir copias ({n})', mailPlacing:'Enviando el pedido…',
       mailDone:'Pedido realizado. Referencia {ref}.', mailSandbox:'Modo de prueba — no se imprime ni se envía nada.',
       mailPriceLine:'{n} copias · {total} con envío incluido', mailPayGo:'Pagar {total}',
+      mailPriceLineTax:'{n} copias · {total} con envío incluido, más el impuesto sobre las ventas donde corresponda', mailPayGoTax:'Continuar al pago',
       mailFromUS:'Impresas y enviadas desde un laboratorio en EE. UU.', mailFromFR:'Impresas y enviadas desde Francia.',
       mailPayNotice:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Familink, nuestro socio de impresión en Francia.',
       mailErrPayment:'No se pudo iniciar el pago. Inténtalo de nuevo.',
@@ -1973,11 +1978,13 @@
     psAll.textContent = n === boxes.length ? STR.printSelectNone : STR.printSelectAll;
     P.checkoutUrl = '';
     if(P.mode === 'familink' && PAY.on && PAY.price){
-      psPrice.textContent = n ? t('mailPriceLine', { n: n * (P.copies || 1), total: psTotal(n) }) : '';
+      // With sales tax on, Stripe adds it once it has the delivery address
+      // (New York only, for now), so the total here isn't promised as final.
+      psPrice.textContent = n ? t(PAY.price.taxAtCheckout ? 'mailPriceLineTax' : 'mailPriceLine', { n: n * (P.copies || 1), total: psTotal(n) }) : '';
     }
     if(!P.busy && !P.done){
       psGo.textContent = P.mode !== 'familink' ? t('printContinue', { n: n })
-        : (PAY.on && PAY.price && n) ? t('mailPayGo', { total: psTotal(n) })
+        : (PAY.on && PAY.price && n) ? (PAY.price.taxAtCheckout ? STR.mailPayGoTax : t('mailPayGo', { total: psTotal(n) }))
         : t('mailGo', { n: n });
       psGo.disabled = n === 0;
     }
