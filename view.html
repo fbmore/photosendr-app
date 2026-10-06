@@ -195,6 +195,7 @@
   .psseg input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
   .psseg label:has(input:checked){background:#fff;color:#000}
   .psseg label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
+  .printnote{margin:12px 0 0;font-size:14px;color:var(--muted);text-wrap:pretty}
   .psprice{margin:2px 0 4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
   .psprice[hidden]{display:none}
   .psstatus{margin:0 0 4px;font-size:14px;text-wrap:pretty}
@@ -446,6 +447,7 @@
     mailPriceLineTax:'{n} prints · {total} including postage, plus sales tax where it applies', mailPayGoTax:'Continue to payment',
     mailSubPD:'4x6 (10x15 cm) prints, mailed to you within the US.', mailNoticePD:'Your photos and delivery address will be sent to Prodigi, our printing partner.',
     mailPayNoticePD:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Prodigi, our printing partner.',
+    printUnavailable:'Prints can’t be ordered from this gallery right now. Prints are mailed to US addresses only.',
     mailFromUS:'Printed and posted from a US lab.', mailFromFR:'Printed and posted from France.',
     mailPayNotice:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Familink, our printing partner in France.',
     mailErrPayment:'Couldn’t start the payment. Try again.',
@@ -510,6 +512,7 @@
       mailPriceLineTax:'{n} stampe · {total} spedizione inclusa, più l’imposta sulle vendite dove prevista', mailPayGoTax:'Continua al pagamento',
       mailSubPD:'Stampe 4x6 (10x15 cm) spedite a te negli Stati Uniti.', mailNoticePD:'Le tue foto e l’indirizzo di consegna saranno inviati a Prodigi, il nostro partner di stampa.',
       mailPayNoticePD:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Prodigi, il nostro partner di stampa.',
+      printUnavailable:'Al momento non si possono ordinare stampe da questa galleria. Le stampe si spediscono solo a indirizzi negli Stati Uniti.',
       mailFromUS:'Stampate e spedite da un laboratorio negli Stati Uniti.', mailFromFR:'Stampate e spedite dalla Francia.',
       mailPayNotice:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Familink, il nostro partner di stampa in Francia.',
       mailErrPayment:'Impossibile avviare il pagamento. Riprova.',
@@ -573,6 +576,7 @@
       mailPriceLineTax:'{n} tirages · {total} frais de port inclus, plus la taxe de vente le cas échéant', mailPayGoTax:'Continuer vers le paiement',
       mailSubPD:'Tirages 4x6 (10x15 cm) expédiés chez vous aux États-Unis.', mailNoticePD:'Vos photos et votre adresse de livraison seront envoyées à Prodigi, notre partenaire d’impression.',
       mailPayNoticePD:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Prodigi, notre partenaire d’impression.',
+      printUnavailable:'Impossible de commander des tirages depuis cette galerie pour le moment. Les tirages ne sont expédiés qu’à des adresses aux États-Unis.',
       mailFromUS:'Imprimés et expédiés depuis un laboratoire aux États-Unis.', mailFromFR:'Imprimés et expédiés depuis la France.',
       mailPayNotice:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Familink, notre partenaire d’impression en France.',
       mailErrPayment:'Impossible de démarrer le paiement. Réessayez.',
@@ -636,6 +640,7 @@
       mailPriceLineTax:'{n} Abzüge · {total} inklusive Versand, zuzüglich Umsatzsteuer, wo sie anfällt', mailPayGoTax:'Weiter zur Zahlung',
       mailSubPD:'4x6-Abzüge (10x15 cm), per Post zu dir innerhalb der USA.', mailNoticePD:'Deine Fotos und die Lieferadresse werden an Prodigi gesendet, unseren Druckpartner.',
       mailPayNoticePD:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Prodigi, unseren Druckpartner.',
+      printUnavailable:'Aus dieser Galerie können gerade keine Abzüge bestellt werden. Abzüge werden nur an Adressen in den USA verschickt.',
       mailFromUS:'Gedruckt und versandt aus einem Labor in den USA.', mailFromFR:'Gedruckt und versandt aus Frankreich.',
       mailPayNotice:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Familink, unseren Druckpartner in Frankreich.',
       mailErrPayment:'Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.',
@@ -699,6 +704,7 @@
       mailPriceLineTax:'{n} copias · {total} con envío incluido, más el impuesto sobre las ventas donde corresponda', mailPayGoTax:'Continuar al pago',
       mailSubPD:'Copias de 4x6 (10x15 cm) enviadas a tu dirección en EE. UU.', mailNoticePD:'Tus fotos y tu dirección de envío se enviarán a Prodigi, nuestro socio de impresión.',
       mailPayNoticePD:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Prodigi, nuestro socio de impresión.',
+      printUnavailable:'Ahora mismo no se pueden pedir copias desde esta galería. Las copias solo se envían a direcciones en EE. UU.',
       mailFromUS:'Impresas y enviadas desde un laboratorio en EE. UU.', mailFromFR:'Impresas y enviadas desde Francia.',
       mailPayNotice:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Familink, nuestro socio de impresión en Francia.',
       mailErrPayment:'No se pudo iniciar el pago. Inténtalo de nuevo.',
@@ -1959,12 +1965,25 @@
         // both, one, or neither.
         if(d.walgreens) add('walgreens', STR.print, 'printer');
         if(d.familink){ PAY = { on: !!d.paid, price: d.price, provider: d.provider }; add('familink', STR.mail, 'mail', d.country); }
+        // ?print=1 is the app's "Order Prints": open the mail sheet straight
+        // away, or say why it can't when printing isn't offered here.
+        if(/[?&]print=1(&|$)/.test(location.search)){
+          var mailBtn = dlrow.querySelector('[data-print-mode="familink"]');
+          if(mailBtn) mailBtn.click();
+          else {
+            var note = document.createElement('p');
+            note.className = 'printnote'; note.setAttribute('role', 'status');
+            note.textContent = STR.printUnavailable;
+            dlrow.parentNode.insertBefore(note, dlrow.nextSibling);
+          }
+        }
         function add(mode, label, ico, country){
           var b = document.createElement('button');
           b.className = 'dl ghost';
           b.innerHTML = icon(ico) + '<span></span>';
           b.querySelector('span').textContent = label;
           b.setAttribute('aria-haspopup', 'dialog');
+          b.setAttribute('data-print-mode', mode);
           b.addEventListener('click', function(){ openPrint(photos, b, mode, country); });
           dlrow.appendChild(b);
         }
