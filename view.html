@@ -1918,9 +1918,13 @@
   var PRINT_RATIOS = { '10x15cm': 1.5, '15x20cm': 4 / 3, '15x15cm': 1, '5x15cm': 3 };
 
   // ?as=US tests the gate from abroad; only the staging worker honours it.
+  // &live=1 asks for a real-money order. The worker honours it only on the
+  // owner's own shares, so passing it through grants nobody anything.
   function printAs(){
-    var as = /[?&]as=([A-Za-z]{2})(&|$)/.exec(location.search);
-    return as ? '?as=' + as[1] : '';
+    var q = [], as = /[?&]as=([A-Za-z]{2})(&|$)/.exec(location.search);
+    if(as) q.push('as=' + as[1]);
+    if(/[?&]live=1(&|$)/.test(location.search)) q.push('live=1');
+    return q.length ? '?' + q.join('&') : '';
   }
 
   function addPrintButton(dlrow, photos){
