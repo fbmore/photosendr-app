@@ -137,7 +137,7 @@
 
   /* ---- Print at Walgreens (prototype) ---- */
   html.ps-open{overflow:hidden}
-  .ps{width:min(560px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:0;border-radius:20px;
+  .ps{width:min(1200px,calc(100% - 32px));height:calc(100dvh - 32px);max-height:none;padding:0;border:0;border-radius:20px;
     background:#141414;color:var(--ink);font:inherit;overflow:hidden;
     box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 64px rgba(0,0,0,.6)}
   .ps[open]{display:flex;flex-direction:column}
@@ -150,14 +150,17 @@
     font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
   .psbar button{background:none;border:0;color:var(--ink);font:inherit;font-weight:600;cursor:pointer;
     min-height:44px;padding:0 4px;text-decoration:underline;text-underline-offset:3px}
-  .psbody{overflow-y:auto;overscroll-behavior:contain;padding:0 20px 8px}
-  .pslist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-  .psitem label{display:flex;flex-direction:column;gap:8px;height:100%;padding:8px;border-radius:12px;background:var(--surface);
+  .psbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 8px}
+  .pslist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+  .psitem label{display:flex;flex-direction:column;gap:6px;height:100%;padding:6px;border-radius:12px;background:var(--surface);
     box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;min-height:44px}
   .psitem label:has(input:checked) .psthumb{opacity:1}
   .psitem label:has(input:checked){box-shadow:inset 0 0 0 2px #fff}
   .psitem label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
-  .psthumb{position:relative;overflow:hidden;border-radius:4px;background:rgba(255,255,255,.04);opacity:.45;
+  /* Every photo sits in the same square well, so a portrait shot no longer
+     stretches its whole row and the grid packs evenly. */
+  .pswell{display:grid;place-items:center;aspect-ratio:1;border-radius:6px;background:rgba(255,255,255,.03)}
+  .psthumb{position:relative;overflow:hidden;border-radius:4px;max-width:100%;max-height:100%;background:rgba(255,255,255,.04);opacity:.45;
     transition-property:opacity;transition-duration:120ms;transition-timing-function:cubic-bezier(0.2,0,0,1)}
   .psthumb img{display:block;width:100%;height:100%;object-fit:contain;outline:1px solid oklch(1 0 0 / .1);outline-offset:-1px}
   /* The 4x6 crop: a centred 3:2 window; everything outside it is shaded. */
@@ -198,6 +201,25 @@
   .psstatus:empty{display:none}
   .psstatus.err{color:#ff9d8f}
   .psactions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:10px}
+  /* Wide screens: details on the left, Finish and the buttons on the right,
+     so the footer takes two rows of height instead of five. */
+  @media (min-width: 760px){
+    .psfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:32px;align-items:center}
+    .psfoot > *{grid-column:1}
+    .psfoot .psfinish{grid-column:2;grid-row:1 / span 2;margin:0;justify-content:flex-end}
+    .psfoot .psactions{grid-column:2;grid-row:3 / span 3;margin:0;align-self:end}
+  }
+  /* Phones: the whole screen, edge to edge, three photos a row. */
+  @media (max-width: 480px){
+    .ps{margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0}
+    .pshead{padding:16px 12px 8px}
+    .psbar{padding:0 12px 6px}
+    .psbody{padding:0 12px 8px}
+    .psfoot{padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
+    .pslist{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+    .psitem label{padding:4px;gap:4px;border-radius:10px}
+    .pswell{border-radius:6px}
+  }
   .psactions .dl{flex:0 1 auto}
   .dl .ico.spin{margin-right:7px}
   @media (prefers-reduced-motion: no-preference){
@@ -2042,6 +2064,9 @@
     var ratio = P.ratio || 1.5;
     thumb.style.aspectRatio = w + ' / ' + h;
     var landscape = w >= h, long = Math.max(w, h), short = Math.min(w, h);
+    // Fit the photo's own shape inside the square well: full width when it's
+    // landscape, full height when it's portrait.
+    thumb.style.width = landscape ? '100%' : (w / h * 100) + '%';
     var cropShort = Math.min(short, long / ratio);
     var cw = landscape ? cropShort * ratio : cropShort, ch = landscape ? cropShort : cropShort * ratio;
     crop.style.width = (cw / w * 100) + '%';
@@ -2086,7 +2111,7 @@
     photos.forEach(function(p, k){
       var li = document.createElement('li'); li.className = 'psitem';
       var id = 'psw' + k;
-      li.innerHTML = '<label><span class="psthumb"><img alt="" decoding="async"><span class="pscrop" aria-hidden="true"></span></span>' +
+      li.innerHTML = '<label><span class="pswell"><span class="psthumb"><img alt="" decoding="async"><span class="pscrop" aria-hidden="true"></span></span></span>' +
         '<span class="psrow"><input type="checkbox" checked><span class="psname"></span></span>' +
         '<span class="pswarn" id="' + id + '" hidden>' + icon('alert') + '<span></span></span></label>';
       li.querySelector('.psname').textContent = p.label || t('printPhotoN', { n: p.index + 1 });
