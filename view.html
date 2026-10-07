@@ -183,40 +183,46 @@
     -webkit-appearance:none;appearance:none}
   .psf input:focus-visible,.psf select:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .psf input[aria-invalid="true"]{border-color:#ff9d8f}
-  .psfoot{padding:12px 20px 20px;border-top:1px solid var(--line)}
-  .psfoot .psnote{margin:0 0 4px;font-size:13px;color:var(--muted);text-wrap:pretty}
-  .psfinish{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;padding:0;border:0}
+  .psfoot{padding:14px 20px 20px;border-top:1px solid var(--line)}
+  .psfoot .psnote{margin:0;font-size:13px;color:var(--muted);text-wrap:pretty}
+  /* Two stacks with even gaps: what the order is (left), and the choices
+     and buttons (right). Each spaces its own rows, so a tall control on one
+     side never pushes the text on the other apart. */
+  .psinfo{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .psctl{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .psfinish{display:flex;align-items:center;gap:12px;margin:0;padding:0;border:0;min-width:0}
   .psfinish[hidden]{display:none}
-  .psfinish legend{float:left;padding:0;font-size:14px;color:var(--muted)}
-  .psseg{display:inline-flex;padding:3px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
-  .psseg label{position:relative;display:flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;
+  .psfinish legend{float:left;width:52px;padding:0;font-size:14px;color:var(--muted)}
+  /* Both choices span the same width, so their edges line up. */
+  .psseg{display:flex;flex:1;min-width:0;padding:3px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+  .psseg label{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;
     padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;
     transition-property:background-color,color;transition-duration:150ms;transition-timing-function:cubic-bezier(0.2,0,0,1)}
   .psseg input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
   .psseg label:has(input:checked){background:#fff;color:#000}
   .psseg label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
   /* Size segments carry a price under the size, so they stack two lines. */
-  .pssize .psseg label{flex-direction:column;gap:0;min-width:72px;padding:4px 10px;line-height:1.15}
+  .pssize .psseg label{flex-direction:column;gap:1px;padding:4px 6px;line-height:1.15}
   .pssize .psseg small{font-size:11px;font-weight:500;opacity:.75;font-variant-numeric:tabular-nums}
   .pswarn.block{color:#ff9d8f}
   .psitem:has(input:disabled) label{cursor:not-allowed}
   .psitem:has(input:disabled) .psthumb{opacity:.25}
   .printnote{margin:12px 0 0;font-size:14px;color:var(--muted);text-wrap:pretty}
-  .psprice{margin:2px 0 4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .psprice{margin:0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
   .psprice[hidden]{display:none}
-  .psstatus{margin:0 0 4px;font-size:14px;text-wrap:pretty}
+  .psstatus{margin:0;font-size:14px;text-wrap:pretty}
   .psstatus:empty{display:none}
   .psstatus.err{color:#ff9d8f}
-  .psactions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:10px}
+  .psactions{display:flex;gap:10px;margin:0}
+  .psactions #psGo{flex:1}
   /* Wide screens: details on the left, Finish and the buttons on the right,
      so the footer takes two rows of height instead of five. */
   @media (min-width: 760px){
-    .psfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:32px;align-items:center}
-    .psfoot > *{grid-column:1}
-    .psfoot .psfinish{grid-column:2;margin:0;justify-content:flex-end}
-    .psfoot .pssize{grid-row:1}
-    .psfoot #psFinish{grid-row:2}
-    .psfoot .psactions{grid-column:2;grid-row:3 / span 3;margin:0;align-self:end}
+    .psfoot{display:flex;align-items:flex-end;gap:40px}
+    .psinfo{flex:1;padding-bottom:2px}
+    .psctl{flex:none;width:400px;margin:0}
+    /* Buttons start where the choices start, under them, not under the labels. */
+    .psactions{padding-left:64px}
   }
   /* Phones: the whole screen, edge to edge, three photos a row. */
   @media (max-width: 480px){
@@ -228,9 +234,7 @@
     .pslist{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
     .psitem label{padding:4px;gap:4px;border-radius:10px}
     .pswell{border-radius:6px}
-    .pssize .psseg{flex:1}
-    .pssize .psseg label{flex:1;min-width:0;padding:4px 4px}
-    .pssize{flex-wrap:wrap}
+    .psfinish legend{width:44px}
   }
   .psactions .dl{flex:0 1 auto}
   .dl .ico.spin{margin-right:7px}
@@ -382,7 +386,13 @@
     </form>
   </div>
   <div class="psfoot">
-    <p id="psHint" class="psnote"></p>
+    <div class="psinfo">
+      <p id="psHint" class="psnote"></p>
+      <p id="psPrice" class="psprice" hidden></p>
+      <p id="psNotice" class="psnote"></p>
+      <p id="psStatus" class="psstatus" role="status"></p>
+    </div>
+    <div class="psctl">
     <fieldset id="psSize" class="psfinish pssize" hidden>
       <legend id="psSizeLegend"></legend>
       <div class="psseg" id="psSizeSeg"></div>
@@ -394,12 +404,10 @@
         <label><input type="radio" name="psfin" value="matte" checked><span></span></label>
       </div>
     </fieldset>
-    <p id="psPrice" class="psprice" hidden></p>
-    <p id="psNotice" class="psnote"></p>
-    <p id="psStatus" class="psstatus" role="status"></p>
     <div class="psactions">
       <button id="psCancel" class="dl ghost" type="button"></button>
       <button id="psGo" class="dl" type="button"></button>
+    </div>
     </div>
   </div>
 </dialog>
