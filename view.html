@@ -195,6 +195,12 @@
   .psseg input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
   .psseg label:has(input:checked){background:#fff;color:#000}
   .psseg label:has(input:focus-visible){outline:3px solid #fff;outline-offset:2px}
+  /* Size segments carry a price under the size, so they stack two lines. */
+  .pssize .psseg label{flex-direction:column;gap:0;min-width:72px;padding:4px 10px;line-height:1.15}
+  .pssize .psseg small{font-size:11px;font-weight:500;opacity:.75;font-variant-numeric:tabular-nums}
+  .pswarn.block{color:#ff9d8f}
+  .psitem:has(input:disabled) label{cursor:not-allowed}
+  .psitem:has(input:disabled) .psthumb{opacity:.25}
   .printnote{margin:12px 0 0;font-size:14px;color:var(--muted);text-wrap:pretty}
   .psprice{margin:2px 0 4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
   .psprice[hidden]{display:none}
@@ -207,7 +213,9 @@
   @media (min-width: 760px){
     .psfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:32px;align-items:center}
     .psfoot > *{grid-column:1}
-    .psfoot .psfinish{grid-column:2;grid-row:1 / span 2;margin:0;justify-content:flex-end}
+    .psfoot .psfinish{grid-column:2;margin:0;justify-content:flex-end}
+    .psfoot .pssize{grid-row:1}
+    .psfoot #psFinish{grid-row:2}
     .psfoot .psactions{grid-column:2;grid-row:3 / span 3;margin:0;align-self:end}
   }
   /* Phones: the whole screen, edge to edge, three photos a row. */
@@ -220,6 +228,9 @@
     .pslist{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
     .psitem label{padding:4px;gap:4px;border-radius:10px}
     .pswell{border-radius:6px}
+    .pssize .psseg{flex:1}
+    .pssize .psseg label{flex:1;min-width:0;padding:4px 4px}
+    .pssize{flex-wrap:wrap}
   }
   .psactions .dl{flex:0 1 auto}
   .dl .ico.spin{margin-right:7px}
@@ -372,6 +383,10 @@
   </div>
   <div class="psfoot">
     <p id="psHint" class="psnote"></p>
+    <fieldset id="psSize" class="psfinish pssize" hidden>
+      <legend id="psSizeLegend"></legend>
+      <div class="psseg" id="psSizeSeg"></div>
+    </fieldset>
     <fieldset id="psFinish" class="psfinish" hidden>
       <legend id="psFinishLegend"></legend>
       <div class="psseg">
@@ -431,10 +446,10 @@
     kindPhoto:'photo', kindVideo:'video', kindPdf:'PDF',
     print:'Print at Walgreens', printSub:'4x6 prints to pick up at a Walgreens store.',
     printNotice:'Photos you select will be sent to Walgreens.',
-    printCropHint:'Shaded edges are trimmed on a 4x6 print.', mailCropHint:'Shaded edges are trimmed on a {fmt} print.',
+    printCropHint:'Shaded edges are trimmed on a 4x6 print.', mailCropHint:'Shaded edges are trimmed when printed at {fmt}.',
     printSelectAll:'Select all', printSelectNone:'Select none', printCount:'{n} of {total} selected',
     printContinue:'Continue to Walgreens ({n})', printContinueAnyway:'Continue to Walgreens', printCancel:'Cancel',
-    printPreparing:'Preparing…', printLowRes:'Low resolution — may print blurry', printPhotoN:'Photo {n}',
+    printPreparing:'Preparing…', printLowRes:'Low resolution for {size} — may print blurry', printTooSmall:'Too small to print at {size}', fmtSize:'Size', printPhotoN:'Photo {n}',
     printErrExpired:'This link has expired, so it can’t be printed.',
     printErrBusy:'Too many print requests for this share. Try again in an hour.',
     printErrNone:'None of these photos are in the share any more.',
@@ -445,7 +460,7 @@
     mailDone:'Order placed. Reference {ref}.', mailSandbox:'Test mode — nothing is printed or shipped.',
     mailPriceLine:'{n} prints · {total} including postage', mailPayGo:'Pay {total}',
     mailPriceLineTax:'{n} prints · {total} including postage, plus sales tax where it applies', mailPayGoTax:'Continue to payment',
-    mailSubPD:'4x6 (10x15 cm) prints, mailed to you within the US.', mailNoticePD:'Your photos and delivery address will be sent to Prodigi, our printing partner.',
+    mailSubPD:'Photo prints in four sizes, mailed to you within the US.', mailNoticePD:'Your photos and delivery address will be sent to Prodigi, our printing partner.',
     mailPayNoticePD:'Payment and delivery address are handled by Stripe on the next step. Your photos go to Prodigi, our printing partner.',
     printUnavailable:'Prints can’t be ordered from this gallery right now. Prints are mailed to US addresses only.',
     mailFromUS:'Printed and posted from a US lab.', mailFromFR:'Printed and posted from France.',
@@ -499,7 +514,7 @@
       printCropHint:'I bordi ombreggiati vengono tagliati nella stampa 4x6.', mailCropHint:'I bordi ombreggiati vengono tagliati nella stampa {fmt}.',
       printSelectAll:'Seleziona tutto', printSelectNone:'Deseleziona tutto', printCount:'{n} di {total} selezionate',
       printContinue:'Continua su Walgreens ({n})', printContinueAnyway:'Continua su Walgreens', printCancel:'Annulla',
-      printPreparing:'Preparazione…', printLowRes:'Bassa risoluzione — la stampa potrebbe essere sfocata', printPhotoN:'Foto {n}',
+      printPreparing:'Preparazione…', printLowRes:'Bassa risoluzione per {size} — la stampa potrebbe essere sfocata', printTooSmall:'Troppo piccola per stampare in {size}', fmtSize:'Formato', printPhotoN:'Foto {n}',
       printErrExpired:'Questo link è scaduto e non può essere stampato.',
       printErrBusy:'Troppe richieste di stampa per questa condivisione. Riprova tra un’ora.',
       printErrNone:'Nessuna di queste foto è ancora nella condivisione.',
@@ -510,7 +525,7 @@
       mailDone:'Ordine inviato. Riferimento {ref}.', mailSandbox:'Modalità di prova — non viene stampato né spedito nulla.',
       mailPriceLine:'{n} stampe · {total} spedizione inclusa', mailPayGo:'Paga {total}',
       mailPriceLineTax:'{n} stampe · {total} spedizione inclusa, più l’imposta sulle vendite dove prevista', mailPayGoTax:'Continua al pagamento',
-      mailSubPD:'Stampe 4x6 (10x15 cm) spedite a te negli Stati Uniti.', mailNoticePD:'Le tue foto e l’indirizzo di consegna saranno inviati a Prodigi, il nostro partner di stampa.',
+      mailSubPD:'Stampe fotografiche in quattro formati, spedite a te negli Stati Uniti.', mailNoticePD:'Le tue foto e l’indirizzo di consegna saranno inviati a Prodigi, il nostro partner di stampa.',
       mailPayNoticePD:'Il pagamento e l’indirizzo di consegna sono gestiti da Stripe nel passaggio successivo. Le foto vanno a Prodigi, il nostro partner di stampa.',
       printUnavailable:'Al momento non si possono ordinare stampe da questa galleria. Le stampe si spediscono solo a indirizzi negli Stati Uniti.',
       mailFromUS:'Stampate e spedite da un laboratorio negli Stati Uniti.', mailFromFR:'Stampate e spedite dalla Francia.',
@@ -563,7 +578,7 @@
       printCropHint:'Les bords grisés sont rognés sur un tirage 4x6.', mailCropHint:'Les bords grisés sont rognés sur un tirage {fmt}.',
       printSelectAll:'Tout sélectionner', printSelectNone:'Tout désélectionner', printCount:'{n} sur {total} sélectionnées',
       printContinue:'Continuer vers Walgreens ({n})', printContinueAnyway:'Continuer vers Walgreens', printCancel:'Annuler',
-      printPreparing:'Préparation…', printLowRes:'Basse résolution — le tirage risque d’être flou', printPhotoN:'Photo {n}',
+      printPreparing:'Préparation…', printLowRes:'Basse résolution pour {size} — le tirage risque d’être flou', printTooSmall:'Trop petite pour un tirage {size}', fmtSize:'Format', printPhotoN:'Photo {n}',
       printErrExpired:'Ce lien a expiré et ne peut pas être imprimé.',
       printErrBusy:'Trop de demandes d’impression pour ce partage. Réessayez dans une heure.',
       printErrNone:'Aucune de ces photos n’est encore dans le partage.',
@@ -574,7 +589,7 @@
       mailDone:'Commande envoyée. Référence {ref}.', mailSandbox:'Mode test — rien n’est imprimé ni expédié.',
       mailPriceLine:'{n} tirages · {total} frais de port inclus', mailPayGo:'Payer {total}',
       mailPriceLineTax:'{n} tirages · {total} frais de port inclus, plus la taxe de vente le cas échéant', mailPayGoTax:'Continuer vers le paiement',
-      mailSubPD:'Tirages 4x6 (10x15 cm) expédiés chez vous aux États-Unis.', mailNoticePD:'Vos photos et votre adresse de livraison seront envoyées à Prodigi, notre partenaire d’impression.',
+      mailSubPD:'Tirages photo en quatre formats, expédiés chez vous aux États-Unis.', mailNoticePD:'Vos photos et votre adresse de livraison seront envoyées à Prodigi, notre partenaire d’impression.',
       mailPayNoticePD:'Le paiement et l’adresse de livraison sont gérés par Stripe à l’étape suivante. Vos photos sont envoyées à Prodigi, notre partenaire d’impression.',
       printUnavailable:'Impossible de commander des tirages depuis cette galerie pour le moment. Les tirages ne sont expédiés qu’à des adresses aux États-Unis.',
       mailFromUS:'Imprimés et expédiés depuis un laboratoire aux États-Unis.', mailFromFR:'Imprimés et expédiés depuis la France.',
@@ -627,7 +642,7 @@
       printCropHint:'Schattierte Ränder werden beim 4x6-Abzug abgeschnitten.', mailCropHint:'Schattierte Ränder werden beim {fmt}-Abzug abgeschnitten.',
       printSelectAll:'Alle auswählen', printSelectNone:'Auswahl aufheben', printCount:'{n} von {total} ausgewählt',
       printContinue:'Weiter zu Walgreens ({n})', printContinueAnyway:'Weiter zu Walgreens', printCancel:'Abbrechen',
-      printPreparing:'Wird vorbereitet…', printLowRes:'Geringe Auflösung — Abzug kann unscharf werden', printPhotoN:'Foto {n}',
+      printPreparing:'Wird vorbereitet…', printLowRes:'Geringe Auflösung für {size} — Abzug kann unscharf werden', printTooSmall:'Zu klein für einen Abzug in {size}', fmtSize:'Größe', printPhotoN:'Foto {n}',
       printErrExpired:'Dieser Link ist abgelaufen und kann nicht gedruckt werden.',
       printErrBusy:'Zu viele Druckanfragen für diese Freigabe. Versuch es in einer Stunde erneut.',
       printErrNone:'Keines dieser Fotos ist noch in der Freigabe.',
@@ -638,7 +653,7 @@
       mailDone:'Bestellung aufgegeben. Referenz {ref}.', mailSandbox:'Testmodus — es wird nichts gedruckt oder versandt.',
       mailPriceLine:'{n} Abzüge · {total} inklusive Versand', mailPayGo:'{total} bezahlen',
       mailPriceLineTax:'{n} Abzüge · {total} inklusive Versand, zuzüglich Umsatzsteuer, wo sie anfällt', mailPayGoTax:'Weiter zur Zahlung',
-      mailSubPD:'4x6-Abzüge (10x15 cm), per Post zu dir innerhalb der USA.', mailNoticePD:'Deine Fotos und die Lieferadresse werden an Prodigi gesendet, unseren Druckpartner.',
+      mailSubPD:'Fotoabzüge in vier Größen, per Post zu dir innerhalb der USA.', mailNoticePD:'Deine Fotos und die Lieferadresse werden an Prodigi gesendet, unseren Druckpartner.',
       mailPayNoticePD:'Zahlung und Lieferadresse übernimmt Stripe im nächsten Schritt. Deine Fotos gehen an Prodigi, unseren Druckpartner.',
       printUnavailable:'Aus dieser Galerie können gerade keine Abzüge bestellt werden. Abzüge werden nur an Adressen in den USA verschickt.',
       mailFromUS:'Gedruckt und versandt aus einem Labor in den USA.', mailFromFR:'Gedruckt und versandt aus Frankreich.',
@@ -691,7 +706,7 @@
       printCropHint:'Los bordes sombreados se recortan en una copia 4x6.', mailCropHint:'Los bordes sombreados se recortan en una copia {fmt}.',
       printSelectAll:'Seleccionar todo', printSelectNone:'No seleccionar ninguna', printCount:'{n} de {total} seleccionadas',
       printContinue:'Continuar en Walgreens ({n})', printContinueAnyway:'Continuar en Walgreens', printCancel:'Cancelar',
-      printPreparing:'Preparando…', printLowRes:'Baja resolución — la copia puede salir borrosa', printPhotoN:'Foto {n}',
+      printPreparing:'Preparando…', printLowRes:'Baja resolución para {size} — la copia puede salir borrosa', printTooSmall:'Demasiado pequeña para imprimir en {size}', fmtSize:'Tamaño', printPhotoN:'Foto {n}',
       printErrExpired:'Este enlace ha caducado y no se puede imprimir.',
       printErrBusy:'Demasiadas solicitudes de impresión para este enlace. Inténtalo en una hora.',
       printErrNone:'Ninguna de estas fotos sigue en el enlace.',
@@ -702,7 +717,7 @@
       mailDone:'Pedido realizado. Referencia {ref}.', mailSandbox:'Modo de prueba — no se imprime ni se envía nada.',
       mailPriceLine:'{n} copias · {total} con envío incluido', mailPayGo:'Pagar {total}',
       mailPriceLineTax:'{n} copias · {total} con envío incluido, más el impuesto sobre las ventas donde corresponda', mailPayGoTax:'Continuar al pago',
-      mailSubPD:'Copias de 4x6 (10x15 cm) enviadas a tu dirección en EE. UU.', mailNoticePD:'Tus fotos y tu dirección de envío se enviarán a Prodigi, nuestro socio de impresión.',
+      mailSubPD:'Copias fotográficas en cuatro tamaños, enviadas a tu dirección en EE. UU.', mailNoticePD:'Tus fotos y tu dirección de envío se enviarán a Prodigi, nuestro socio de impresión.',
       mailPayNoticePD:'El pago y la dirección de envío los gestiona Stripe en el siguiente paso. Tus fotos se envían a Prodigi, nuestro socio de impresión.',
       printUnavailable:'Ahora mismo no se pueden pedir copias desde esta galería. Las copias solo se envían a direcciones en EE. UU.',
       mailFromUS:'Impresas y enviadas desde un laboratorio en EE. UU.', mailFromFR:'Impresas y enviadas desde Francia.',
@@ -1995,7 +2010,17 @@
       psGo = document.getElementById('psGo'), psStatus = document.getElementById('psStatus');
   var psAddr = document.getElementById('psAddr'), psPrice = document.getElementById('psPrice');
   var psFinish = document.getElementById('psFinish');
-  var P = { photos: [], busy: false, checkoutUrl: '', mode: 'walgreens', done: false };
+  var psSize = document.getElementById('psSize'), psSizeSeg = document.getElementById('psSizeSeg');
+  // The sizes on sale (from /print/eligible) and the one chosen. Pages
+  // served before sizes existed price everything as 4x6, so that's the default.
+  function psSizes(){ return (PAY.price && PAY.price.sizes) || []; }
+  function psSizeNow(){
+    var all = psSizes();
+    for(var i = 0; i < all.length; i++) if(all[i].id === P.size) return all[i];
+    return null;
+  }
+  function sizeLabel(id){ return String(id).replace('x', '×'); }
+  var P = { photos: [], busy: false, checkoutUrl: '', mode: 'walgreens', done: false, size: '4x6' };
   var ADDR_LABELS = { first_name:'addrFirst', last_name:'addrLast', address_1:'addrLine1', address_2:'addrLine2',
                       city:'addrCity', postal_or_zip_code:'addrPost', state:'addrState', country_code:'addrCountry',
                       format:'fmtLabel', finish:'fmtFinish' };
@@ -2026,12 +2051,14 @@
     Array.prototype.forEach.call(psFinish.querySelectorAll('label'), function(l){
       l.querySelector('span').textContent = l.querySelector('input').value === 'glossy' ? STR.fmtGlossy : STR.fmtMatte;
     });
+    document.getElementById('psSizeLegend').textContent = STR.fmtSize;
     var fin = psAddr.querySelector('[name=finish]');
     [['matte','fmtMatte'],['glossy','fmtGlossy']].forEach(function(o){ fin.appendChild(new Option(STR[o[1]], o[0])); });
   })();
 
   function psTotal(n){
-    var p = PAY.price, cents = n * p.unitCents + p.shipCents;
+    var p = PAY.price, sz = psSizeNow();
+    var cents = n * (sz ? sz.unitCents : p.unitCents) + p.shipCents;
     return new Intl.NumberFormat(LANG, { style: 'currency', currency: p.currency.toUpperCase() }).format(cents / 100);
   }
 
@@ -2040,9 +2067,13 @@
     var fmtSel = psAddr.querySelector('[name=format]');
     var fmt = P.mode === 'familink' ? fmtSel.value : '10x15cm';
     P.ratio = PRINT_RATIOS[fmt] || 1.5;
-    document.getElementById('psHint').textContent = P.mode === 'familink'
-      ? t('mailCropHint', { fmt: fmtSel.options[fmtSel.selectedIndex].text })
-      : STR.printCropHint;
+    var sz = P.mode === 'familink' && PAY.on ? psSizeNow() : null;
+    if(sz) P.ratio = sz.ratio;
+    document.getElementById('psHint').textContent = sz
+      ? t('mailCropHint', { fmt: sizeLabel(sz.id) })
+      : P.mode === 'familink'
+        ? t('mailCropHint', { fmt: fmtSel.options[fmtSel.selectedIndex].text })
+        : STR.printCropHint;
     (P.rows || []).forEach(function(r){
       r.warn.hidden = true;
       r.box.removeAttribute('aria-describedby');
@@ -2069,8 +2100,8 @@
     }
   }
   psAll.addEventListener('click', function(){
-    var boxes = psChecks(), all = boxes.every(function(c){ return c.checked; });
-    boxes.forEach(function(c){ c.checked = !all; });
+    var boxes = psChecks().filter(function(c){ return !c.disabled; }), all = boxes.every(function(c){ return c.checked; });
+    boxes.forEach(function(c){ c.checked = !all; c.dataset.touched = '1'; });
     psStatus.textContent = '';
     psSync();
   });
@@ -2090,7 +2121,23 @@
     var cw = landscape ? cropShort * ratio : cropShort, ch = landscape ? cropShort : cropShort * ratio;
     crop.style.width = (cw / w * 100) + '%';
     crop.style.height = (ch / h * 100) + '%';
-    if(cropShort < PRINT_MIN_SHORT_PX){ warn.hidden = false; box.setAttribute('aria-describedby', warn.id); }
+    // Judge the photo by the pixels that actually print: the crop's short
+    // side against the chosen size's floors (150 dpi sharp, 100 dpi at all).
+    var sz = psSizeNow();
+    var good = sz ? sz.goodShortPx : PRINT_MIN_SHORT_PX, floor = sz ? sz.minShortPx : 0;
+    var text = warn.querySelector('span'), label = sz ? sizeLabel(sz.id) : '4×6';
+    box.disabled = cropShort < floor;
+    warn.classList.toggle('block', box.disabled);
+    // Untouched photos follow the size: ticked when sharp, unticked when
+    // they'd print blurry (something to opt into, not find in the post).
+    // One the buyer ticked or unticked keeps their choice, unless it's now
+    // too small to print at all.
+    if(box.disabled) box.checked = false;
+    else if(!box.dataset.touched) box.checked = cropShort >= good;
+    text.textContent = box.disabled ? t('printTooSmall', { size: label })
+                     : cropShort < good ? t('printLowRes', { size: label }) : '';
+    if(box.disabled || cropShort < good){ warn.hidden = false; box.setAttribute('aria-describedby', warn.id); }
+    psSync();
   }
 
   function openPrint(photos, opener, mode, country){
@@ -2111,6 +2158,20 @@
     // With payment on the address form (and its finish select) is hidden, so
     // the finish is chosen here. Matte is Prodigi's lustre; see print.js.
     psFinish.hidden = !(mail && PAY.on);
+    var sizes = mail && PAY.on ? psSizes() : [];
+    psSize.hidden = sizes.length < 2;
+    psSizeSeg.innerHTML = '';
+    if(!sizes.some(function(z){ return z.id === P.size; })) P.size = sizes.length ? (sizes.some(function(z){ return z.id === '4x6'; }) ? '4x6' : sizes[0].id) : '4x6';
+    sizes.forEach(function(z){
+      var l = document.createElement('label');
+      l.innerHTML = '<input type="radio" name="pssize"><span></span><small></small>';
+      var inp = l.querySelector('input');
+      inp.value = z.id; inp.checked = z.id === P.size;
+      l.querySelector('span').textContent = sizeLabel(z.id);
+      l.querySelector('small').textContent = new Intl.NumberFormat(LANG, { style: 'currency', currency: PAY.price.currency.toUpperCase() }).format(z.unitCents / 100);
+      inp.addEventListener('change', function(){ if(inp.checked){ P.size = z.id; psSizeChanged(); psSync(); } });
+      psSizeSeg.appendChild(l);
+    });
     if(mail && PAY.on){
       var notice = pd ? STR.mailPayNoticePD : STR.mailPayNotice;
       // Familink prints in France, Prodigi at the lab nearest the buyer.
@@ -2134,12 +2195,12 @@
         '<span class="psrow"><input type="checkbox" checked><span class="psname"></span></span>' +
         '<span class="pswarn" id="' + id + '" hidden>' + icon('alert') + '<span></span></span></label>';
       li.querySelector('.psname').textContent = p.label || t('printPhotoN', { n: p.index + 1 });
-      li.querySelector('.pswarn span').textContent = STR.printLowRes;
+      li.querySelector('.pswarn span').textContent = '';
       var img = li.querySelector('img'), box = li.querySelector('input');
       var row = { img: img, thumb: li.querySelector('.psthumb'), crop: li.querySelector('.pscrop'),
                   warn: li.querySelector('.pswarn'), box: box };
       P.rows.push(row);
-      box.addEventListener('change', function(){ psStatus.textContent = ''; psSync(); });
+      box.addEventListener('change', function(){ box.dataset.touched = '1'; psStatus.textContent = ''; psSync(); });
       img.addEventListener('load', function(){ psMeasure(img, row.thumb, row.crop, row.warn, box); });
       img.src = p.url;
       psList.appendChild(li);
@@ -2183,13 +2244,13 @@
       if(!a){ psError(STR.mailErrAddress); return; }
     } else {
       var picked = psFinish.querySelector('input:checked');
-      a = { format: psAddr.elements.format.value, finish: picked ? picked.value : 'matte' };
+      a = { format: psAddr.elements.format.value, finish: picked ? picked.value : 'matte', size: P.size };
     }
     psBusy(true, STR.mailPlacing);
     fetch(PRINT_API + '/print/order' + printAs(), {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ shareId: DEMO ? 'demo' : recordName, indexes: idx, address: a,
-                             format: a.format, finish: a.finish })
+                             format: a.format, finish: a.finish, size: a.size })
     }).then(function(r){ return r.json().then(function(d){ return { status: r.status, d: d }; }); })
       .then(function(res){
         psBusy(false);
