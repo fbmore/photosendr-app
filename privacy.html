@@ -35,7 +35,7 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 23 September 2026</p>
+  <p class="muted">Last updated: 18 October 2026</p>
 
   <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
 
@@ -51,7 +51,7 @@
     <li><strong>Your sets</strong> — the photos and videos you add to your sets are kept in the app's private storage on your device so they're still there when you come back. Deleting an item or a set in the app removes it.</li>
     <li><strong>Your defaults</strong> — the recipient list, email subject, and message you save in Settings live on your device only.</li>
     <li><strong>Saved edits</strong> — when you tap Save, the edited photo is written back to your own photo library.</li>
-    <li><strong>Your cards</strong> — a card you make from a gallery is kept on your device so you can send it again or edit it later: the design and words you chose, copies of the photos on its front (or the artwork, if you made one), a small picture of the finished front, and the gallery address its code points to. Deleting a card in the app deletes all of it. Nothing about a card is uploaded — printing, emailing and sharing a card all happen from your device, through your own apps.</li>
+    <li><strong>Your cards</strong> — a card you make from a gallery is kept on your device so you can send it again or edit it later: the design and words you chose, copies of the photos on its front (or the artwork, if you made one), a small picture of the finished front, and the gallery address its code points to. Deleting a card in the app deletes all of it. Nothing about a card is uploaded — printing, emailing and sharing a card all happen from your device, through your own apps. The one exception is a <a href="#permanent-links">permanent link</a>, if you choose to make one.</li>
     <li><strong>Your share links</strong> — the list of links you've created is stored on your device so you can keep track of them and expire them: the address, the title, the expiry date, how many items went in it, which set it came from, and a few small thumbnails so the list can show you what you sent.</li>
   </ul>
   <p>The developer has no access to any of this.</p>
@@ -76,6 +76,16 @@
     <li><strong>We never see it.</strong> PhotoSendr receives only the finished picture you accept, and saves it on your device with the card. There is no PhotoSendr AI service, no API key, and no server of ours involved at any point.</li>
     <li><strong>It stays on your device.</strong> Generated artwork is stored alongside your cards, deleted when you delete the card, and leaves your phone only inside a card you choose to send, print or share.</li>
     <li><strong>Your photos are not used to train anything</strong> by us. We do not collect, receive, or have any access to the photos you start from or the pictures Apple makes.</li>
+  </ul>
+
+  <h2 id="permanent-links">Permanent card links (Pro)</h2>
+  <p>A card's code normally opens its gallery, and stops working when the gallery's link expires. With Pro you can give a card a <strong>permanent link</strong> instead: a short address at photosendr.com/r/… that keeps working and sends people on to wherever you choose — the gallery, or any web page, such as a restaurant's menu.</p>
+  <ul>
+    <li><strong>What we store.</strong> Where the link goes (a gallery, or the web address you typed), when it was made and changed, and how many times it was scanned, as a total and per day. Daily counts are deleted after about 400 days.</li>
+    <li><strong>Nothing about who scanned.</strong> A scan adds one to a count and redirects. We don't keep IP addresses, devices, locations or anything else about the person scanning.</li>
+    <li><strong>Who it belongs to.</strong> To check you have Pro, the app sends us the same <em>random anonymous identifier</em> RevenueCat uses for your purchases (see <a href="#purchases">Purchases</a>), and our server asks RevenueCat whether it has Pro. That identifier is not your name, email or Apple ID. Your card's name and the label you give a link stay on your device.</li>
+    <li><strong>Changing or deleting it.</strong> Only your devices can change where a link goes or delete it: making one gives your device a key, kept in your iCloud Keychain, and we store only a scrambled fingerprint of that key. Deleting the link (Settings → Cards → ⋯ → Change Where It Goes… → Delete Link) removes it and its counts from our server.</li>
+    <li><strong>If Pro ends,</strong> the link keeps working for 30 days, then shows a page saying it's paused until Pro is renewed.</li>
   </ul>
 
   <h2 id="prints">Ordering prints</h2>
@@ -103,13 +113,13 @@
   <h2>What we do <em>not</em> collect</h2>
   <ul>
     <li>No account, sign-in, name, email, or phone number is required or collected.</li>
-    <li>No analytics, usage tracking, or advertising SDKs of any kind. The only numbers we keep are per-link view counts and per-day print totals, described above.</li>
+    <li>No analytics, usage tracking, or advertising SDKs of any kind. The only numbers we keep are per-link view counts, per-day scan counts for permanent card links, and per-day print totals, all described above.</li>
     <li>No location data.</li>
     <li>Your photos, recipient addresses, and messages are never sent to the developer. The one time photos reach a company other than Apple is a print order somebody places from a share page, and then they go to the print partner, not to us.</li>
     <li>No AI service of ours, and no prompts, photos or generated pictures sent to one. The optional Image Playground feature is Apple's, runs only when you choose it, and can be ignored entirely.</li>
   </ul>
 
-  <h2>Purchases</h2>
+  <h2 id="purchases">Purchases</h2>
   <p>PhotoSendr is free for 3 sets of up to 10 items each, with one short video per set and one live share link at a time. <strong>PhotoSendr Pro</strong> (unlimited sets, larger sets, full-length videos, unlimited share links) is an optional purchase — a monthly or yearly auto-renewing subscription or a one-time lifetime unlock — processed entirely by <strong>Apple</strong> through your App Store account. The app never sees your payment details.</p>
   <p>To manage subscriptions and restore purchases, the app uses <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat</a>, which receives purchase receipts tied to a <em>random anonymous identifier</em> — never your name, email, or Apple ID. If you bought PhotoSendr before version 5, the app detects that on-device through Apple's receipt and unlocks Pro for free; nothing is sent anywhere for this.</p>
 
