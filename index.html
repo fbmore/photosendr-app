@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhotoSendr — Photos, videos and files to your favorite people</title>
-<meta name="description" content="Snap or pick photos, scan paper into a PDF, add videos and files — tidy them up, and send them to the people who always want them: by email, as a single PDF, as an expiring iCloud link, or as a printable card with a code that opens the lot. No account, no tracking.">
+<meta name="description" content="Snap or pick photos, scan paper into a PDF, add videos and files — tidy them up, and send them to the people who always want them: by email, as a single PDF, as an expiring iCloud link, as a printable card with a code that opens the lot, or as real prints mailed to the door. No account, no tracking.">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <style>
@@ -190,6 +190,16 @@
   .shotframe{width:220px;border-radius:34px;border:1px solid var(--line);background:#000;padding:8px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
   .shotframe.pad{width:320px;border-radius:24px;align-self:center}
   .shotframe img{width:100%;display:block;border-radius:26px}
+  /* Prints: two phones, yours and theirs, each with a one-line caption. */
+  .feat.wide .duo{display:flex;gap:20px;justify-content:center;align-items:flex-start}
+  .duo figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .duo figcaption{font-size:14px;line-height:1.35;color:var(--muted2);text-align:center;max-width:200px;text-wrap:balance}
+  .duo figcaption strong{display:block;color:#fff;font-weight:600}
+  @media(max-width:520px){
+    .feat.wide .duo{gap:12px}
+    .duo .shotframe{width:calc((100vw - 32px - 12px) / 2);padding:5px;border-radius:24px}
+    .duo .shotframe img{border-radius:19px}
+  }
 
   /* pricing */
   .price{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:42px}
@@ -250,7 +260,7 @@
   </div>
   <h1>PhotoSendr</h1>
   <p class="tag">Photos, videos and files to your favorite people,
-in a tap — by email, a web gallery, or a card.</p>
+in a tap — by email, a web gallery, a card, or prints.</p>
   <video class="herovid" autoplay muted loop playsinline preload="metadata" poster="media/pitch-poster.jpg"
          aria-label="A 51-second silent tour of PhotoSendr: one grid filled from your camera, your library or Files, a set for every group, quick edits, video trimming, a share sheet that asks whether to send by email, publish a private web gallery or make a card, the gallery open in a browser, and a printable postcard whose code opens that gallery.">
     <source src="media/pitch-hero.mp4" type="video/mp4">
@@ -523,6 +533,32 @@ in a tap — by email, a web gallery, or a card.</p>
       </ul>
     </div>
     <div class="shotframe"><img src="shot-card.png" alt="The Create Card preview step on iPhone: a green Happy Holidays postcard with a photo on the front, and buttons to send it by email or download a print-ready PDF" loading="lazy"></div>
+  </div>
+</section>
+
+<!-- 10 · PRINTS -->
+<section class="feat wide" id="prints">
+  <div class="wrap">
+    <div class="copy">
+      <h2>Prints, for you or for them</h2>
+      <p>Tap Order prints and the set goes to the printer: choose the photos, a size and a finish, pay, and real photo prints are made in a US lab and mailed to you. Or just share the link. Everyone who opens the gallery can order their own prints of the photos they want and pay for their own, with no app and no account, so nobody has to collect addresses or settle up afterwards.</p>
+      <ul class="bul">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-print"/></svg>4x4, 4x6, 5x7 or 8x10, glossy or matte</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><use href="#i-check"/></svg>From $0.59 a print, plus $7.99 postage</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-send"/></svg>Anyone with the link can order, right in their browser</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><use href="#i-mail"/></svg>Mailed to US addresses · Stripe checkout</li>
+      </ul>
+    </div>
+    <div class="duo">
+      <figure>
+        <div class="shotframe"><img src="shot-print-app.png" alt="PhotoSendr's share sheet on iPhone, with Order prints, real photo prints mailed to you, listed between Make a card and Send another way" loading="lazy"></div>
+        <figcaption><strong>For yourself</strong>Order prints from the share sheet</figcaption>
+      </figure>
+      <figure>
+        <div class="shotframe"><img src="shot-print-web.png" alt="A shared gallery's Mail prints sheet in iPhone Safari: twelve trip photos ticked, sizes from 4x4 to 8x10, glossy or matte, and the total including postage" loading="lazy"></div>
+        <figcaption><strong>For everyone else</strong>They print their own from the link</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
