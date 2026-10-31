@@ -35,11 +35,11 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 23 October 2026</p>
+  <p class="muted">Last updated: 31 October 2026</p>
 
-  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, or when <strong>you</strong> create an iCloud share link.</p>
+  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, when <strong>you</strong> create an iCloud share link, and as a backup to <strong>your own</strong> iCloud, which only you can read.</p>
 
-  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. Things leave your device only when you send them, when you order printed cards, or — on a share page — when someone you gave the link to orders prints of the photos you shared.</p>
+  <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. Things leave your device only when you send them, when you order printed cards, as a backup to your own private iCloud (on by default, Wi-Fi only, and you can turn it off), or — on a share page — when someone you gave the link to orders prints of the photos you shared.</p>
 
   <hr>
 
@@ -58,6 +58,16 @@
 
   <h2>How sending works</h2>
   <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send. (Ordering prints is the exception, and only when someone confirms an order — see <a href="#prints">Ordering prints</a> and <a href="#printed-cards">Ordering printed cards</a>.)</p>
+
+  <h2 id="backup">iCloud Backup</h2>
+  <p>PhotoSendr keeps a copy of your sets in <strong>your own</strong> iCloud account, so they come back if you change phones and a photo frame signed in to the same Apple Account can show them.</p>
+  <ul>
+    <li><strong>Private to you.</strong> The copy lives in the private part of the app's iCloud container (<code>iCloud.com.fbmore.PhotoSendrV2</code>), which Apple keeps under your Apple Account. We can't see it, open it or count it, and it isn't the public database share links use.</li>
+    <li><strong>What's in it.</strong> Your sets' names and the order of their items, the photos, videos, scans and files in them with their thumbnails, and a note of which device backed up last, when, and with which version of the app. Not your recipients, your cards or your settings.</li>
+    <li><strong>On by default, Wi-Fi only.</strong> Backups upload over Wi-Fi. They use mobile data only if you turn on <em>Use Mobile Data</em> in Settings › iCloud Backup, which warns you first. The backup counts against your iCloud storage.</li>
+    <li><strong>Your choice.</strong> Turn it off in Settings › iCloud Backup. You can keep the iCloud copy or delete it there, at once and for good.</li>
+    <li><strong>Frames.</strong> A device in Frame Mode signed in to the same Apple Account reads the backup to show the sets you choose. What a frame shows and how it behaves stays on that device; it isn't backed up or synced.</li>
+  </ul>
 
   <h2>iCloud share links (Pro)</h2>
   <p>When you create a share link, what you're sharing is uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address: the photos, videos and files in the current set, or the PDF when you're sending one, plus a small cover image the app makes from the first item so the link shows a picture when you paste it somewhere. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
@@ -91,7 +101,7 @@
   <h2 id="prints">Ordering prints</h2>
   <p>A share page can offer prints of the photos in it. Anyone holding the link can order — that is the point, so a grandparent can get prints without installing anything — which also means <strong>anyone you give a link to can order prints of what you shared</strong>. Nothing is sent until they choose photos and confirm on a screen that says where the photos are going.</p>
   <ul>
-    <li><strong>Prints posted to you.</strong> The photos you pick go to our printing partner, who makes them and posts them; for US orders they are printed in the US. Your name and delivery address are collected by <strong>Stripe</strong> at checkout and passed to the printer so they can address the parcel. We never see your card details, and we don't keep the address — only the country, so we know where orders go.</li>
+    <li><strong>Prints posted to you.</strong> The photos you pick go to our printing partner, who makes them and posts them; for US orders they are printed in the US. Your name and delivery address are collected by <strong>Stripe</strong> at checkout and passed to the printer so they can address the parcel. We never see your card details, and we don't keep the address — only the country and, for US orders, the state, so we know where orders go and which state's sales tax applies.</li>
     <li><strong>Prints collected from a shop.</strong> Where prints are offered for collection, copies of the chosen photos are sent to that shop, who handle store choice, price and payment on their own checkout, under their own privacy policy. We pass the photos through and keep no copy.</li>
     <li><strong>Your photos stay yours.</strong> A print order uses the chosen photos only to make and post that order. Neither we nor the printer reuse them for anything else, and the person who shared them keeps every right to them — see <a href="terms.html#print-rights">Whose photos they are</a> in the Terms.</li>
     <li><strong>What we keep.</strong> For each order: which link it came from, how many photos, the print size, the delivery country, whether it succeeded, and the email address given at checkout — kept for 90 days so we can send order updates and answer questions. No names, no postal addresses, no photos. (A printed-card order is different: see <a href="#printed-cards">below</a>.)</li>
@@ -105,9 +115,8 @@
   <ul>
     <li><strong>What's uploaded.</strong> The finished card, as one picture of its front and back — everything printed on it, including your photos, your words and its QR code — plus a small picture of the front for your order page and emails. It goes to our server, and from there to our printing partner, who prints and posts the pack.</li>
     <li><strong>How long we keep it.</strong> 90 days, so the printer can fetch it and we can answer questions about the order; then it is deleted. Nobody can open it without the order's own signed link, and it isn't used for anything else.</li>
-    <li><strong>Payment and address.</strong> As for prints: <strong>Stripe</strong> collects your name and delivery address at checkout and passes them to the printer. We never see your payment card details, and we don't keep the address — only the country.</li>
+    <li><strong>Payment and address.</strong> As for prints: <strong>Stripe</strong> collects your name and delivery address at checkout and passes them to the printer. We never see your payment card details, and we don't keep the address — only the country and, for US orders, the state.</li>
     <li><strong>What else we keep.</strong> For each order: the card size, paper and pack size, the delivery country, whether it succeeded, and the email address given at checkout — kept for 90 days to send order updates. Your card's name and its gallery stay on your device.</li>
-    <li><strong>Payment.</strong> Print orders are paid on the partner's own checkout. We never see card details.</li>
   </ul>
 
   <h2>Device permissions and why</h2>
@@ -117,7 +126,7 @@
     <li><strong>Photo library picking</strong> — uses Apple's system picker, which runs outside the app and needs no permission: the app receives only the photos and videos you pick.</li>
     <li><strong>Photo library (read, optional)</strong> — the new-set welcome screen can show your three latest shots on its quick-pick button. That preview is the only thing read access is used for; it never leaves your device, and declining just shows an icon instead. Picking photos itself still needs no access.</li>
     <li><strong>Photo library (add)</strong> — only to save edited photos back when you tap Save.</li>
-    <li><strong>iCloud</strong> — used only when you create a share link, to upload that share to the app's public database.</li>
+    <li><strong>iCloud</strong> — to back up your sets to your own private iCloud (unless you turn it off), and when you create a share link, to upload that share to the app's public database.</li>
   </ul>
 
   <h2>What we do <em>not</em> collect</h2>
