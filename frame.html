@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PhotoSendr frame</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="A PhotoSendr frame">
+<meta property="og:description" content="Open on any screen to play these photos as a frame.">
+<meta property="og:image" content="https://photosendr.com/logo.png">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<style>
+  /* A frame link: one share, played full screen as a photo frame by any
+     browser (specs/frame-link.md). photosendr.com/f/<id> lands here as
+     frame.html#<id>. The page reads the share through the worker, the
+     same way view.html does, and asks again every 5 minutes, so new
+     photos in the link reach the screen by themselves. */
+  :root{--ink:#fff;--muted:rgba(255,255,255,.6);--canvas:#000;--glass:rgba(28,28,30,.72);
+    --line:rgba(255,255,255,.12);--accent:#2b6acc;--fade:1.2s}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--canvas);color:var(--ink);overflow:hidden;
+    font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;user-select:none}
+  body.idle{cursor:none}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* The photos. Each slide is the photo, fitted whole, over a blurred copy
+     of itself that fills the screen, so no screen shape leaves bars. */
+  #stage{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;opacity:0;transition:opacity var(--fade) ease-out}
+  .slide.on{opacity:1}
+  .slide .bg{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;
+    filter:blur(48px) brightness(.55) saturate(1.2);transform:translateZ(0)}
+  .slide .fg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  @media (prefers-reduced-motion: reduce){ .slide{transition:none} }
+
+  /* Start, turned off, loading: one centred card on black. */
+  .panel{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;z-index:5}
+  .panel[hidden]{display:none}
+  .card{max-width:440px;width:100%;text-align:center}
+  .card .logo{width:72px;height:72px;margin:0 auto 18px;display:block}
+  .card h1{font-size:28px;font-weight:600;margin:0 0 6px;text-wrap:balance}
+  .card p{color:var(--muted);font-size:16px;line-height:1.5;margin:0 0 24px;text-wrap:pretty}
+  .card .fine{font-size:14px;margin:18px 0 0}
+  .btn{appearance:none;border:0;border-radius:999px;background:var(--ink);color:#000;
+    font:inherit;font-size:19px;font-weight:600;padding:16px 44px;min-height:56px;cursor:pointer;
+    transition-property:scale,opacity;transition-duration:.15s;transition-timing-function:ease-out}
+  .btn:active{scale:.96}
+  .btn:focus-visible,.bar button:focus-visible,#badge:focus-visible,.qrcard button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+  /* The set's name, for 3 s when the frame starts. */
+  #title{position:fixed;left:0;right:0;top:max(40px,env(safe-area-inset-top));z-index:3;
+    text-align:center;font-size:clamp(22px,3.4vw,40px);font-weight:600;text-wrap:balance;padding:0 32px;
+    text-shadow:0 2px 24px rgba(0,0,0,.6);opacity:0;transition:opacity .6s ease-out;pointer-events:none}
+  #title.on{opacity:1}
+
+  /* A tap shows a small bar for a few seconds. */
+  .bar{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));z-index:4;display:flex;gap:4px;
+    padding:6px;border-radius:999px;background:var(--glass);
+    box-shadow:0 0 0 1px var(--line),0 12px 40px rgba(0,0,0,.45);
+    -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+    translate:-50% 0;opacity:0;pointer-events:none;
+    transition-property:opacity,translate;transition-duration:.2s;transition-timing-function:ease-out}
+  .bar.on{opacity:1;pointer-events:auto;translate:-50% -4px}
+  .bar button{appearance:none;border:0;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:500;
+    min-width:48px;min-height:48px;padding:0 16px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    transition-property:background-color,scale;transition-duration:.15s;transition-timing-function:ease-out}
+  .bar button:hover{background:rgba(255,255,255,.1)}
+  .bar button:active{scale:.96}
+  .bar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+  .bar .play-icon{fill:currentColor;stroke:none}
+
+  /* Free accounts' photos carry the app's logo, blended into the photo. */
+  #badge{position:fixed;z-index:3;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));
+    width:48px;height:48px;padding:10px;border:0;background:transparent;cursor:pointer;
+    mix-blend-mode:overlay;transition:translate 2s ease-out}
+  #badge[hidden]{display:none}
+  #badge svg{width:100%;height:100%;display:block}
+  .qrwrap{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s ease-out}
+  .qrwrap.on{opacity:1;pointer-events:auto}
+  .qrcard{width:100%;max-width:460px;border-radius:28px;padding:24px;text-align:center;background:var(--glass);
+    box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.5);
+    -webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px)}
+  .qrcard h2{margin:0 0 6px;font-size:19px;font-weight:600}
+  .qrcard p{margin:0 0 18px;color:var(--muted);font-size:15px;text-wrap:pretty}
+  .codes{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+  .code{width:170px}
+  /* 10px padding inside a 16px radius on the white plate; the code's own
+     corners are square, so the plate carries the radius. */
+  .code .qr{background:#fff;border-radius:16px;padding:10px;aspect-ratio:1;display:flex}
+  .code .qr svg{width:100%;height:100%;display:block}
+  .code span{display:block;margin-top:8px;font-size:13px;color:var(--muted);text-wrap:balance}
+  .qrcard button{appearance:none;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:600;font-size:16px;
+    min-height:44px;min-width:88px;margin-top:14px;border-radius:999px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="stage" aria-hidden="true"></div>
+<div id="title" aria-hidden="true"></div>
+
+<div class="panel" id="panel">
+  <div class="card">
+    <img class="logo" src="logo.png" alt="" width="72" height="72" style="border-radius:16px">
+    <h1 id="panelTitle"></h1>
+    <p id="panelText"></p>
+    <button class="btn" id="start" type="button" hidden></button>
+    <p class="fine" id="panelFine" hidden></p>
+  </div>
+</div>
+
+<div class="bar" id="bar" role="toolbar">
+  <button type="button" id="bPlay"></button>
+  <button type="button" id="bNext"></button>
+  <button type="button" id="bFull"></button>
+</div>
+
+<button id="badge" type="button" hidden></button>
+<div class="qrwrap" id="qrwrap">
+  <div class="qrcard" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <h2 id="qrTitle">Powered by PhotoSendr</h2>
+    <p id="qrText"></p>
+    <div class="codes">
+      <div class="code"><div class="qr" id="qrApp" role="img"></div><span id="qrAppCap"></span></div>
+      <div class="code"><div class="qr" id="qrFrame" role="img"></div><span id="qrFrameCap"></span></div>
+    </div>
+    <button type="button" id="qrClose"></button>
+  </div>
+</div>
+<div class="vh" id="live" aria-live="polite"></div>
+
+<script src="lottie_light.min.js" defer></script>
+<script>
+(function(){
+  var SHARE_API = 'https://photosendr-views.fbmore.workers.dev/set/';
+  var APP_STORE = 'https://apps.apple.com/app/id514665066';
+  var CHECK_EVERY = 5 * 60 * 1000;
+  var PHOTO_SECONDS = 10;
+  // A video that never says it ended still moves on.
+  var VIDEO_MAX_SECONDS = 120;
+
+  var BASE = {
+    start:'Start', starting:'Starting…', play:'Play', pause:'Pause', next:'Next', full:'Full screen', exitFull:'Exit full screen',
+    nPhotos1:'1 photo', nPhotosN:'{n} photos',
+    startText:'{items} from {from}. Tap Start and this screen becomes a photo frame. New photos in the link show up on their own.',
+    startTextNoFrom:'{items}. Tap Start and this screen becomes a photo frame. New photos in the link show up on their own.',
+    startFine:'Keep this screen plugged in. To start it straight away next time, add this page to the home screen.',
+    loading:'Loading the frame…',
+    offTitle:'This frame is off', offText:'The link expired or was turned off. Ask whoever sent it for a new one.',
+    emptyTitle:'Nothing to show yet', emptyText:'There are no photos in this link yet. They will appear here when they are added.',
+    errorTitle:'Can’t reach PhotoSendr', errorText:'Check the connection. The frame will try again by itself.',
+    missing:'This frame link is incomplete. Open the whole link you were sent.',
+    poweredText:'Send photos and videos, and turn any screen into a photo frame.',
+    getApp:'Scan to get the app', playHere:'Scan to play these photos on your screen',
+    qrApp:'QR code to get PhotoSendr on the App Store', qrFrame:'QR code for this frame link',
+    badge:'Powered by PhotoSendr', close:'Close', frame:'Photo frame', photoOf:'Photo {n} of {total}'
+  };
+  var LANG = {
+    it:{ start:'Avvia', starting:'Avvio…', play:'Riproduci', pause:'Pausa', next:'Avanti', full:'Schermo intero', exitFull:'Esci da schermo intero',
+      nPhotos1:'1 foto', nPhotosN:'{n} foto',
+      startText:'{items} da {from}. Tocca Avvia e questo schermo diventa una cornice digitale. Le nuove foto del link arrivano da sole.',
+      startTextNoFrom:'{items}. Tocca Avvia e questo schermo diventa una cornice digitale. Le nuove foto del link arrivano da sole.',
+      startFine:'Tieni lo schermo collegato alla corrente. Per avviarla subito la prossima volta, aggiungi questa pagina alla schermata Home.',
+      loading:'Caricamento della cornice…',
+      offTitle:'Questa cornice è spenta', offText:'Il link è scaduto o è stato disattivato. Chiedi a chi te l’ha mandato un link nuovo.',
+      emptyTitle:'Ancora niente da mostrare', emptyText:'Nel link non ci sono ancora foto. Appariranno qui quando verranno aggiunte.',
+      errorTitle:'Impossibile raggiungere PhotoSendr', errorText:'Controlla la connessione. La cornice riproverà da sola.',
+      missing:'Questo link è incompleto. Apri il link intero che hai ricevuto.',
+      poweredText:'Invia foto e video, e trasforma qualsiasi schermo in una cornice.',
+      getApp:'Inquadra per scaricare l’app', playHere:'Inquadra per vedere queste foto sul tuo schermo',
+      qrApp:'Codice QR per scaricare PhotoSendr dall’App Store', qrFrame:'Codice QR per il link di questa cornice',
+      badge:'Con PhotoSendr', close:'Chiudi', frame:'Cornice', photoOf:'Foto {n} di {total}' },
+    fr:{ start:'Démarrer', starting:'Démarrage…', play:'Lecture', pause:'Pause', next:'Suivante', full:'Plein écran', exitFull:'Quitter le plein écran',
+      nPhotos1:'1 photo', nPhotosN:'{n} photos',
+      startText:'{items} de {from}. Touchez Démarrer et cet écran devient un cadre photo. Les nouvelles photos du lien arrivent toutes seules.',
+      startTextNoFrom:'{items}. Touchez Démarrer et cet écran devient un cadre photo. Les nouvelles photos du lien arrivent toutes seules.',
+      startFine:'Laissez l’écran branché. Pour le lancer directement la prochaine fois, ajoutez cette page à l’écran d’accueil.',
+      loading:'Chargement du cadre…',
+      offTitle:'Ce cadre est éteint', offText:'Le lien a expiré ou a été désactivé. Demandez-en un nouveau à la personne qui l’a envoyé.',
+      emptyTitle:'Rien à afficher pour l’instant', emptyText:'Ce lien ne contient pas encore de photos. Elles apparaîtront ici dès qu’elles seront ajoutées.',
+      errorTitle:'Impossible de joindre PhotoSendr', errorText:'Vérifiez la connexion. Le cadre réessaiera tout seul.',
+      missing:'Ce lien est incomplet. Ouvrez le lien entier que vous avez reçu.',
+      poweredText:'Envoyez photos et vidéos, et faites de n’importe quel écran un cadre photo.',
+      getApp:'Scannez pour obtenir l’app', playHere:'Scannez pour afficher ces photos sur votre écran',
+      qrApp:'Code QR pour obtenir PhotoSendr sur l’App Store', qrFrame:'Code QR du lien de ce cadre',
+      badge:'Avec PhotoSendr', close:'Fermer', frame:'Cadre photo', photoOf:'Photo {n} sur {total}' },
+    de:{ start:'Starten', starting:'Wird gestartet…', play:'Abspielen', pause:'Pause', next:'Weiter', full:'Vollbild', exitFull:'Vollbild beenden',
+      nPhotos1:'1 Foto', nPhotosN:'{n} Fotos',
+      startText:'{items} von {from}. Tippe auf Starten, und dieser Bildschirm wird zum Bilderrahmen. Neue Fotos im Link kommen von selbst.',
+      startTextNoFrom:'{items}. Tippe auf Starten, und dieser Bildschirm wird zum Bilderrahmen. Neue Fotos im Link kommen von selbst.',
+      startFine:'Lass den Bildschirm am Strom. Damit er beim nächsten Mal sofort startet, füge diese Seite zum Home-Bildschirm hinzu.',
+      loading:'Rahmen wird geladen…',
+      offTitle:'Dieser Rahmen ist aus', offText:'Der Link ist abgelaufen oder wurde abgeschaltet. Bitte die Person, die ihn geschickt hat, um einen neuen.',
+      emptyTitle:'Noch nichts zu zeigen', emptyText:'In diesem Link sind noch keine Fotos. Sie erscheinen hier, sobald sie hinzugefügt werden.',
+      errorTitle:'PhotoSendr nicht erreichbar', errorText:'Prüfe die Verbindung. Der Rahmen versucht es von selbst wieder.',
+      missing:'Dieser Link ist unvollständig. Öffne den ganzen Link, den du bekommen hast.',
+      poweredText:'Fotos und Videos senden und jeden Bildschirm zum Bilderrahmen machen.',
+      getApp:'Scannen, um die App zu laden', playHere:'Scannen, um diese Fotos auf deinem Bildschirm zu zeigen',
+      qrApp:'QR-Code für PhotoSendr im App Store', qrFrame:'QR-Code für den Link dieses Rahmens',
+      badge:'Mit PhotoSendr', close:'Schließen', frame:'Bilderrahmen', photoOf:'Foto {n} von {total}' },
+    es:{ start:'Empezar', starting:'Empezando…', play:'Reproducir', pause:'Pausa', next:'Siguiente', full:'Pantalla completa', exitFull:'Salir de pantalla completa',
+      nPhotos1:'1 foto', nPhotosN:'{n} fotos',
+      startText:'{items} de {from}. Toca Empezar y esta pantalla se convierte en un marco de fotos. Las fotos nuevas del enlace llegan solas.',
+      startTextNoFrom:'{items}. Toca Empezar y esta pantalla se convierte en un marco de fotos. Las fotos nuevas del enlace llegan solas.',
+      startFine:'Deja la pantalla enchufada. Para que empiece sola la próxima vez, añade esta página a la pantalla de inicio.',
+      loading:'Cargando el marco…',
+      offTitle:'Este marco está apagado', offText:'El enlace caducó o se desactivó. Pide uno nuevo a quien te lo envió.',
+      emptyTitle:'Aún no hay nada que mostrar', emptyText:'Este enlace todavía no tiene fotos. Aparecerán aquí cuando se añadan.',
+      errorTitle:'No se puede conectar con PhotoSendr', errorText:'Revisa la conexión. El marco lo volverá a intentar solo.',
+      missing:'Este enlace está incompleto. Abre el enlace entero que recibiste.',
+      poweredText:'Envía fotos y vídeos, y convierte cualquier pantalla en un marco de fotos.',
+      getApp:'Escanea para conseguir la app', playHere:'Escanea para ver estas fotos en tu pantalla',
+      qrApp:'Código QR para conseguir PhotoSendr en el App Store', qrFrame:'Código QR del enlace de este marco',
+      badge:'Con PhotoSendr', close:'Cerrar', frame:'Marco de fotos', photoOf:'Foto {n} de {total}' }
+  };
+  var lang = ((navigator.language || 'en').slice(0, 2)).toLowerCase();
+  var STR = {}, k;
+  for(k in BASE) STR[k] = (LANG[lang] && LANG[lang][k]) || BASE[k];
+  if(LANG[lang]) document.documentElement.lang = lang;
+  function t(key, v){ return STR[key].replace(/\{(\w+)\}/g, function(_, n){ return v && v[n] != null ? v[n] : ''; }); }
+
+  var $ = function(id){ return document.getElementById(id); };
+  var stage = $('stage'), panel = $('panel'), bar = $('bar'), live = $('live');
+  var id = (location.hash || '').replace(/^#/, '').split('/')[0];
+  var DEMO = /[?&]demo(=|&|$)/.test(location.search);
+  if(DEMO && !id) id = 'demo';
+  var frameLink = 'https://photosendr.com/f/' + id;
+
+  // ---- State --------------------------------------------------------------
+  var items = [];       // [{ key, type, url }] in the link's order
+  var queue = [];       // keys still to play this round; new photos go first
+  var shown = null;     // key on screen
+  var started = false, playing = true, timer = null, title = '', senderPro = null;
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function showPanel(head, text, opts){
+    opts = opts || {};
+    $('panelTitle').textContent = head;
+    $('panelText').textContent = text || '';
+    var s = $('start');
+    s.hidden = !opts.start;
+    if(opts.start){ s.textContent = STR.start; s.disabled = false; }
+    var fine = $('panelFine');
+    fine.hidden = !opts.fine; fine.textContent = opts.fine || '';
+    panel.hidden = false;
+    if(opts.start) s.focus();
+  }
+
+  // ---- Reading the link -----------------------------------------------------
+  function assetURL(entry, name){
+    var u = entry && (entry.downloadURL || (entry.value && entry.value.downloadURL)) || '';
+    return u.replace('${f}', encodeURIComponent(name));
+  }
+
+  // The playable items of a record: photos and videos, keyed so a photo
+  // keeps its identity across checks (the download URLs change, the file
+  // checksum doesn't).
+  function readItems(rec){
+    var f = rec.fields || {};
+    var list = (f.items && f.items.value) || [];
+    var types = (f.itemTypes && f.itemTypes.value) || [];
+    var out = [];
+    list.forEach(function(it, i){
+      var type = types[i] || 'photo';
+      if(type !== 'photo' && type !== 'video') return;
+      var url = assetURL(it, (type === 'video' ? 'video-' : 'photo-') + (i + 1) + (type === 'video' ? '.mp4' : '.jpg'));
+      if(!url) return;
+      var key = (it.fileChecksum || (it.value && it.value.fileChecksum)) || url.split('?')[0];
+      out.push({ key: key, type: type, url: url });
+    });
+    return out;
+  }
+
+  function fetchRecord(){
+    if(DEMO) return Promise.resolve(demoRecord());
+    return fetch(SHARE_API + encodeURIComponent(id), { cache: 'no-store' }).then(function(r){
+      if(r.status === 404) return null;
+      if(!r.ok) throw new Error('set ' + r.status);
+      return r.json();
+    });
+  }
+
+  // Merge a fresh read into what's playing: photos new to the link play
+  // next, removed ones leave the round, URLs are refreshed.
+  function apply(rec){
+    var f = rec.fields || {};
+    title = (f.title && f.title.value) || '';
+    var sp = f.senderPro && f.senderPro.value;
+    senderPro = (sp === 0 || sp === 1) ? sp : null;
+    var fresh = readItems(rec);
+    var known = {};
+    items.forEach(function(it){ known[it.key] = true; });
+    var keep = {};
+    fresh.forEach(function(it){ keep[it.key] = true; });
+    var added = started ? fresh.filter(function(it){ return !known[it.key]; }).map(function(it){ return it.key; }) : [];
+    items = fresh;
+    queue = added.concat(queue.filter(function(k){ return keep[k] && added.indexOf(k) < 0; }));
+    $('badge').hidden = !(senderPro === 0);
+    return fresh.length;
+  }
+
+  function check(){
+    return fetchRecord().then(function(rec){
+      if(!rec || !rec.fields){ turnOff(); return; }
+      var exp = rec.fields.expiresAt && rec.fields.expiresAt.value;
+      if(exp && exp < Date.now()){ turnOff(); return; }
+      var n = apply(rec);
+      if(started){
+        if(!n) showPanel(STR.emptyTitle, STR.emptyText);
+        else { panel.hidden = true; if(!shown) next(); }
+      }
+      return rec;
+    });
+  }
+
+  function turnOff(){
+    stop();
+    items = []; queue = [];
+    stage.innerHTML = '';
+    shown = null;
+    $('badge').hidden = true;
+    closeCard();
+    bar.classList.remove('on');
+    document.title = STR.offTitle;
+    showPanel(STR.offTitle, STR.offText);
+  }
+
+  // ---- Playing -------------------------------------------------------------
+  function stop(){ clearTimeout(timer); timer = null; }
+
+  function itemFor(key){
+    for(var i = 0; i < items.length; i++) if(items[i].key === key) return items[i];
+    return null;
+  }
+
+  function next(){
+    stop();
+    if(!items.length) return;
+    if(!queue.length){
+      queue = items.map(function(it){ return it.key; });
+      // A lone photo stays up rather than flashing back in.
+      if(queue.length === 1 && shown === queue[0]){ schedule(PHOTO_SECONDS); return; }
+    }
+    var it = itemFor(queue.shift());
+    if(!it){ next(); return; }
+    show(it);
+  }
+
+  function schedule(seconds){
+    stop();
+    if(playing) timer = setTimeout(next, seconds * 1000);
+  }
+
+  function show(it){
+    var slide = document.createElement('div');
+    slide.className = 'slide';
+    var done = false;
+    function ready(){
+      if(done) return; done = true;
+      stage.appendChild(slide);
+      // Next frame, so the fade has a starting point.
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ slide.classList.add('on'); }); });
+      var old = Array.prototype.slice.call(stage.children, 0, -1);
+      setTimeout(function(){
+        old.forEach(function(o){ var v = o.querySelector('video'); if(v){ v.pause(); v.removeAttribute('src'); v.load(); } o.remove(); });
+      }, reduceMotion ? 0 : 1300);
+      shown = it.key;
+      var pos = items.indexOf(it) + 1;
+      live.textContent = t('photoOf', { n: pos, total: items.length });
+    }
+    function failed(){
+      if(done) return; done = true;
+      // A URL that stopped working: ask for fresh ones, and move on.
+      check().catch(function(){});
+      setTimeout(next, 1000);
+    }
+    if(it.type === 'video'){
+      var v = document.createElement('video');
+      v.className = 'fg'; v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+      v.preload = 'auto'; v.src = it.url;
+      v.addEventListener('loadeddata', function(){
+        ready();
+        var p = v.play(); if(p && p.catch) p.catch(function(){});
+        schedule(isFinite(v.duration) && v.duration > 0 ? Math.min(v.duration + 0.5, VIDEO_MAX_SECONDS) : VIDEO_MAX_SECONDS);
+      }, { once: true });
+      v.addEventListener('ended', function(){ if(shown === it.key && playing) next(); });
+      v.addEventListener('error', failed, { once: true });
+      slide.appendChild(v);
+    } else {
+      var bg = new Image(); bg.className = 'bg'; bg.alt = ''; bg.decoding = 'async';
+      var fg = new Image(); fg.className = 'fg'; fg.alt = ''; fg.decoding = 'async';
+      fg.onload = function(){
+        (fg.decode ? fg.decode() : Promise.resolve()).catch(function(){}).then(function(){ ready(); schedule(PHOTO_SECONDS); });
+      };
+      fg.onerror = failed;
+      bg.src = it.url; fg.src = it.url;
+      slide.appendChild(bg); slide.appendChild(fg);
+    }
+    // The one after this, so it's ready when its turn comes.
+    var upcoming = queue.length ? itemFor(queue[0]) : null;
+    if(upcoming && upcoming.type === 'photo'){ var pre = new Image(); pre.src = upcoming.url; }
+  }
+
+  // ---- Start: browsers need a tap for full screen and wake lock ----------
+  var wakeLock = null;
+  function keepAwake(){
+    if(!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+    navigator.wakeLock.request('screen').then(function(l){ wakeLock = l; }).catch(function(){});
+  }
+  function isFull(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function canFull(){ var d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen); }
+  function enterFull(){
+    var d = document.documentElement;
+    try {
+      var p = d.requestFullscreen ? d.requestFullscreen({ navigationUI: 'hide' }) : (d.webkitRequestFullscreen && d.webkitRequestFullscreen());
+      if(p && p.catch) p.catch(function(){});
+    } catch(e){}
+  }
+  function exitFull(){
+    try { if(document.exitFullscreen) document.exitFullscreen().catch(function(){}); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e){}
+  }
+
+  $('start').addEventListener('click', function(){
+    started = true;
+    panel.hidden = true;
+    enterFull();
+    keepAwake();
+    queue = items.map(function(it){ return it.key; });
+    next();
+    var tl = $('title');
+    if(title){
+      tl.textContent = title;
+      setTimeout(function(){ tl.classList.add('on'); }, 400);
+      setTimeout(function(){ tl.classList.remove('on'); }, 3400);
+    }
+    loadBadge();
+    idleSoon();
+  });
+
+  // ---- The bar -------------------------------------------------------------
+  var ICON = {
+    pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>',
+    play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path class="play-icon" d="M8 5.5v13a.5.5 0 0 0 .77.42l10-6.5a.5.5 0 0 0 0-.84l-10-6.5A.5.5 0 0 0 8 5.5z"/></svg>',
+    next:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+    full:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    exitFull:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>'
+  };
+  function paintBar(){
+    $('bPlay').innerHTML = (playing ? ICON.pause : ICON.play) + '<span>' + (playing ? STR.pause : STR.play) + '</span>';
+    $('bNext').innerHTML = ICON.next + '<span>' + STR.next + '</span>';
+    var full = isFull();
+    $('bFull').hidden = !canFull();
+    $('bFull').innerHTML = (full ? ICON.exitFull : ICON.full) + '<span class="vh">' + (full ? STR.exitFull : STR.full) + '</span>';
+    $('bFull').setAttribute('aria-label', full ? STR.exitFull : STR.full);
+  }
+  bar.setAttribute('aria-label', STR.frame);
+  paintBar();
+  var barTimer = null, idleTimer = null;
+  function showBar(){
+    if(!started || !panel.hidden) return;
+    paintBar();
+    bar.classList.add('on');
+    document.body.classList.remove('idle');
+    clearTimeout(barTimer);
+    barTimer = setTimeout(function(){ bar.classList.remove('on'); }, 4000);
+    idleSoon();
+  }
+  function idleSoon(){
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function(){ document.body.classList.add('idle'); }, 4000);
+  }
+  $('bPlay').addEventListener('click', function(e){
+    e.stopPropagation();
+    playing = !playing;
+    var v = stage.querySelector('.slide.on:last-child video');
+    if(playing){ if(v){ var p = v.play(); if(p && p.catch) p.catch(function(){}); } schedule(v ? 5 : PHOTO_SECONDS); }
+    else { stop(); if(v) v.pause(); }
+    showBar();
+  });
+  $('bNext').addEventListener('click', function(e){ e.stopPropagation(); next(); showBar(); });
+  $('bFull').addEventListener('click', function(e){ e.stopPropagation(); if(isFull()) exitFull(); else enterFull(); setTimeout(paintBar, 300); });
+  document.addEventListener('click', function(e){
+    if(!started || e.target.closest('.bar,#badge,.qrwrap,.panel')) return;
+    showBar();
+    // A tap is also a good moment to look for new photos.
+    maybeCheck();
+  });
+  document.addEventListener('mousemove', function(){ if(started){ document.body.classList.remove('idle'); idleSoon(); } });
+  document.addEventListener('keydown', function(e){
+    if(!started || $('qrwrap').classList.contains('on')) return;
+    if(e.key === 'ArrowRight'){ next(); showBar(); }
+    else if(e.key === ' ' || e.key === 'k'){ e.preventDefault(); $('bPlay').click(); }
+    else if(e.key === 'f'){ $('bFull').click(); }
+  });
+  document.addEventListener('fullscreenchange', paintBar);
+  document.addEventListener('webkitfullscreenchange', paintBar);
+
+  // ---- Staying current --------------------------------------------------
+  var lastCheck = Date.now();
+  function maybeCheck(){
+    if(Date.now() - lastCheck < 30 * 1000) return;
+    lastCheck = Date.now();
+    check().catch(function(){});
+  }
+  setInterval(function(){ lastCheck = Date.now(); check().catch(function(){}); }, CHECK_EVERY);
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState !== 'visible') return;
+    if(started) keepAwake();
+    maybeCheck();
+  });
+  window.addEventListener('online', function(){ lastCheck = Date.now(); check().catch(function(){}); });
+
+  // ---- Powered by PhotoSendr (free accounts only) -------------------------
+  var badge = $('badge'), qrwrap = $('qrwrap'), qrTimer = null, badgeLoaded = false;
+  badge.setAttribute('aria-label', STR.badge);
+  $('qrText').textContent = STR.poweredText;
+  $('qrAppCap').textContent = STR.getApp;
+  $('qrFrameCap').textContent = STR.playHere;
+  $('qrApp').setAttribute('aria-label', STR.qrApp);
+  $('qrFrame').setAttribute('aria-label', STR.qrFrame);
+  $('qrClose').textContent = STR.close;
+
+  // The app's own Lottie logo, held on its last frame (the one the paywall
+  // settles on), so the mark matches the app's.
+  function loadBadge(){
+    if(badgeLoaded || badge.hidden || !window.lottie) return;
+    badgeLoaded = true;
+    try {
+      var a = lottie.loadAnimation({ container: badge, renderer: 'svg', loop: false, autoplay: false, path: 'logo.json' });
+      a.addEventListener('DOMLoaded', function(){ a.goToAndStop(a.totalFrames - 1, true); });
+    } catch(e){}
+  }
+  // A few pixels' wander every few minutes, so it can't burn into a screen.
+  setInterval(function(){
+    badge.style.translate = Math.round(Math.random() * 12 - 6) + 'px ' + Math.round(Math.random() * 12 - 6) + 'px';
+  }, 3 * 60 * 1000);
+
+  var qrLib = null;
+  function withQR(cb){
+    if(window.qrcode) return cb();
+    if(!qrLib){
+      qrLib = document.createElement('script');
+      qrLib.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+      document.head.appendChild(qrLib);
+    }
+    qrLib.addEventListener('load', cb, { once: true });
+  }
+  function drawQR(el, text){
+    var q = qrcode(0, 'M'); q.addData(text); q.make();
+    el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  }
+  var lastFocus = null;
+  function openCard(){
+    lastFocus = document.activeElement;
+    withQR(function(){ drawQR($('qrApp'), APP_STORE); drawQR($('qrFrame'), frameLink); });
+    qrwrap.classList.add('on');
+    $('qrClose').focus();
+    clearTimeout(qrTimer);
+    qrTimer = setTimeout(closeCard, 15000);
+  }
+  function closeCard(){
+    qrwrap.classList.remove('on');
+    clearTimeout(qrTimer);
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  badge.addEventListener('click', function(e){ e.stopPropagation(); openCard(); });
+  $('qrClose').addEventListener('click', function(e){ e.stopPropagation(); closeCard(); });
+  qrwrap.addEventListener('click', function(e){ if(e.target === qrwrap) closeCard(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && qrwrap.classList.contains('on')) closeCard(); });
+
+  // ---- ?demo: an offline stand-in record ---------------------------------
+  function demoRecord(){
+    var colors = [['#f6d365','#fda085'],['#84fab0','#8fd3f4'],['#a18cd1','#fbc2eb'],['#fccb90','#d57eeb'],['#4facfe','#00f2fe']];
+    var n = /[?&]more(=|&|$)/.test(location.search) ? 5 : 4;
+    var list = colors.slice(0, n).map(function(c, i){
+      var cv = document.createElement('canvas'); cv.width = i % 2 ? 900 : 1600; cv.height = i % 2 ? 1200 : 1000;
+      var x = cv.getContext('2d'), g = x.createLinearGradient(0, 0, cv.width, cv.height);
+      g.addColorStop(0, c[0]); g.addColorStop(1, c[1]); x.fillStyle = g; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = 'rgba(0,0,0,.35)'; x.font = '600 120px system-ui'; x.textAlign = 'center'; x.fillText(String(i + 1), cv.width / 2, cv.height / 2 + 40);
+      return { downloadURL: cv.toDataURL('image/jpeg', .8), fileChecksum: 'demo' + i };
+    });
+    return { fields: { title: { value: 'Weekend at the lake' }, senderName: { value: 'Francesco' },
+      senderPro: { value: /[?&]pro(=|&|$)/.test(location.search) ? 1 : 0 },
+      expiresAt: { value: Date.now() + 6 * 864e5 },
+      items: { value: list }, itemTypes: { value: list.map(function(){ return 'photo'; }) } } };
+  }
+
+  // ---- Go ------------------------------------------------------------------
+  if(!id){ showPanel(STR.offTitle, STR.missing); return; }
+  showPanel(STR.loading, '');
+  fetchRecord().then(function(rec){
+    if(!rec || !rec.fields){ turnOff(); return; }
+    var exp = rec.fields.expiresAt && rec.fields.expiresAt.value;
+    if(exp && exp < Date.now()){ turnOff(); return; }
+    var n = apply(rec);
+    var f = rec.fields;
+    var from = ((f.senderName && f.senderName.value) || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    document.title = (title || STR.frame) + ' · PhotoSendr';
+    if(!n){ showPanel(STR.emptyTitle, STR.emptyText); return; }
+    var countText = n === 1 ? STR.nPhotos1 : t('nPhotosN', { n: n });
+    showPanel(title || STR.frame, from ? t('startText', { items: countText, from: from }) : t('startTextNoFrom', { items: countText }),
+      { start: true, fine: STR.startFine });
+  }).catch(function(){
+    showPanel(STR.errorTitle, STR.errorText);
+    // Try again until the network is back.
+    var retry = setInterval(function(){
+      fetchRecord().then(function(rec){ clearInterval(retry); if(rec) location.reload(); else turnOff(); }).catch(function(){});
+    }, 30 * 1000);
+  });
+})();
+</script>
+</body>
+</html>
