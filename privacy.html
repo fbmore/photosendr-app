@@ -35,9 +35,9 @@
   <img src="logo.png" alt="PhotoSendr" width="52" height="52" style="border-radius:13px;display:block;margin:20px 0 4px">
   <div class="kicker">PhotoSendr</div>
   <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: 31 October 2026</p>
+  <p class="muted">Last updated: 5 November 2026</p>
 
-  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, when <strong>you</strong> create an iCloud share link, and as a backup to <strong>your own</strong> iCloud, which only you can read.</p>
+  <p class="lead">PhotoSendr helps you send photos to the people who always want them — and it does almost all of it on your device. It has no accounts and no analytics. Your photos leave your phone only when <strong>you</strong> send them, when <strong>you</strong> create an iCloud share link, and as a backup to <strong>your own</strong> iCloud, which only you can read and which keeps your sets the same on your iPhone, iPad and Mac.</p>
 
   <p><span class="pill">In short</span>&nbsp; No accounts. No tracking. No analytics. No advertising. We don't collect your photos, your recipients, or any personal information. Things leave your device only when you send them, when you order printed cards, as a backup to your own private iCloud (on by default, Wi-Fi only, and you can turn it off), or — on a share page — when someone you gave the link to orders prints of the photos you shared.</p>
 
@@ -57,26 +57,34 @@
   <p>The developer has no access to any of this.</p>
 
   <h2>How sending works</h2>
-  <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the iOS share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send. (Ordering prints is the exception, and only when someone confirms an order — see <a href="#prints">Ordering prints</a> and <a href="#printed-cards">Ordering printed cards</a>.)</p>
+  <p>When you share by email or the share sheet, PhotoSendr hands your photos (or the PDF it builds from them) to <strong>your own</strong> Mail compose window or the system share sheet. The email goes out through your email account; AirDrop and other shares go through Apple's system features. PhotoSendr never sends anything on its own, and never sees or stores what you send. (Ordering prints is the exception, and only when someone confirms an order — see <a href="#prints">Ordering prints</a> and <a href="#printed-cards">Ordering printed cards</a>.)</p>
 
   <h2 id="backup">iCloud Backup</h2>
-  <p>PhotoSendr keeps a copy of your sets in <strong>your own</strong> iCloud account, so they come back if you change phones and a photo frame signed in to the same Apple Account can show them.</p>
+  <p>PhotoSendr keeps a copy of your sets in <strong>your own</strong> iCloud account, so they come back if you change phones, your other devices signed in to the same Apple Account keep the same sets, and a photo frame signed in to that account can show them.</p>
   <ul>
     <li><strong>Private to you.</strong> The copy lives in the private part of the app's iCloud container (<code>iCloud.com.fbmore.PhotoSendrV2</code>), which Apple keeps under your Apple Account. We can't see it, open it or count it, and it isn't the public database share links use.</li>
     <li><strong>What's in it.</strong> Your sets' names and the order of their items, the photos, videos, scans and files in them with their thumbnails, and a note of which device backed up last, when, and with which version of the app. Not your recipients, your cards or your settings.</li>
     <li><strong>On by default, Wi-Fi only.</strong> Backups upload over Wi-Fi. They use mobile data only if you turn on <em>Use Mobile Data</em> in Settings › iCloud Backup, which warns you first. The backup counts against your iCloud storage.</li>
     <li><strong>Your choice.</strong> Turn it off in Settings › iCloud Backup. You can keep the iCloud copy or delete it there, at once and for good.</li>
+    <li><strong>Your devices.</strong> Your iPhone, iPad and Mac signed in to the same Apple Account read and update this same private copy, so a set you change on one changes on the others. Nothing passes through us. Turn it off on any device in Settings › iCloud › Sync Sets Between Devices.</li>
     <li><strong>Frames.</strong> A device in Frame Mode signed in to the same Apple Account reads the backup to show the sets you choose. What a frame shows and how it behaves stays on that device; it isn't backed up or synced.</li>
   </ul>
 
-  <h2>iCloud share links (Pro)</h2>
+  <h2>iCloud share links</h2>
   <p>When you create a share link, what you're sharing is uploaded to the app's public iCloud (CloudKit) database — container <code>iCloud.com.fbmore.PhotoSendrV2</code> — under a random, unguessable address: the photos, videos and files in the current set, or the PDF when you're sending one, plus a small cover image the app makes from the first item so the link shows a picture when you paste it somewhere. There is no directory or search: only someone you give the link to can open it, in any web browser, with no account or app.</p>
   <ul>
-    <li><strong>You stay in control.</strong> Links expire automatically after 7 days, and you can stop sharing any link earlier from Settings → Shared Links; that deletes the uploaded copies.</li>
-    <li><strong>What's uploaded</strong> is exactly what you chose to share: the media and files, or the PDF, the cover image for the link preview, a title, and the expiry date. No names, emails, or identifiers travel with it.</li>
+    <li><strong>You stay in control.</strong> Links expire on their own: after 7 days on the free version, or after the 7, 30 or 90 days you pick with Pro. You can stop sharing any link earlier from Settings → Shared Links; that deletes the uploaded copies.</li>
+    <li><strong>What's uploaded</strong> is exactly what you chose to share: the media and files, or the PDF, the cover image for the link preview, a title, the expiry date, and a yes-or-no mark saying whether the sender has Pro (pages from the free version show a small PhotoSendr logo). No names, emails, or identifiers travel with it.</li>
     <li><strong>View counts.</strong> To show you how many times a link was opened, the viewer page pings a small counter service that stores <em>only</em> a random link ID and a number — no IP addresses, no location, no cookies, nothing about the viewer or about you.</li>
     <li><strong>Downloads.</strong> The viewer's download buttons fetch files directly from Apple's iCloud. When a browser blocks that direct fetch, the bytes pass through a small relay we run on Cloudflare; it streams the file and stores nothing — no copies, no content logs.</li>
     <li><strong>Reporting.</strong> Every shared page carries a "Report this share" link that opens an email to us containing the link's address, so we can delete a reported share from iCloud. We receive only what the reporter chooses to send.</li>
+  </ul>
+
+  <h2 id="frame-link">Show on another screen</h2>
+  <p><em>Show on Another Screen</em> gives you a second address for a share link, at photosendr.com/f/…, that plays the same photos full screen as a slideshow, like a photo frame, in any browser: a tablet, a TV's browser or another computer.</p>
+  <ul>
+    <li><strong>Nothing new is uploaded.</strong> The frame reads the same copy as the share link, from the same place, and stops working when that link expires or you stop sharing it.</li>
+    <li><strong>Nothing about the screen is kept.</strong> The frame page sets no cookies and we don't record which devices open it. Its codes point to the share link and to PhotoSendr on the App Store.</li>
   </ul>
 
   <h2>Card artwork with Image Playground (optional)</h2>
